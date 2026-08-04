@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>オンラインオリパ</title>
+<style>
+  :root {
+    --bg-color: #121212;
+    --card-bg: #1e1e24;
+    --accent-gold: #ffd700;
+    --accent-pink: #ff2a6d;
+    --text-color: #ffffff;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background-color: #000;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding-bottom: 80px;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background-color: #111;
+    border-bottom: 1px solid #222;
+  }
+  .logo {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--accent-pink);
+    letter-spacing: 1px;
+  }
+  .coin-status {
+    display: flex;
+    align-items: center;
+    background: #222;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    color: var(--accent-gold);
+    font-size: 14px;
+  }
+
+  .oripa-card {
+    margin: 12px;
+    background: linear-gradient(135deg, #2a085c, #15002b);
+    border: 2px solid var(--accent-gold);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+  }
+  .oripa-banner {
+    position: relative;
+    width: 100%;
+    padding: 24px 0;
+    background: radial-gradient(circle, #ff0055 0%, #4a0028 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  .badge-return {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: #e60000;
+    color: #fff;
+    font-weight: bold;
+    font-size: 11px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    border: 1px solid #fff;
+  }
+  .oripa-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--accent-gold);
+    text-shadow: 0 0 8px rgba(0,0,0,0.8);
+    margin: 0;
+  }
+  .oripa-sub {
+    font-size: 12px;
+    color: #fff;
+    margin-top: 4px;
+  }
+
+  .oripa-info {
+    padding: 12px;
+  }
+  .progress-bar-bg {
+    background: #333;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+  .progress-bar-fill {
+    background: linear-gradient(90deg, #00ff88, #00b8ff);
+    height: 100%;
+    width: 100%;
+    transition: width 0.3s ease;
+  }
+  .stock-text {
+    font-size: 12px;
+    color: #aaa;
+    text-align: right;
+    margin-bottom: 12px;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 8px;
+  }
+  .btn-gacha {
+    flex: 1;
+    background: linear-gradient(180deg, #ffd700, #ff8800);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 0;
+    font-weight: bold;
+    font-size: 15px;
+    color: #000;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #b36b00;
+  }
+  .btn-gacha:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  #loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    color: var(--accent-gold);
+    font-weight: bold;
+    font-size: 16px;
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+  }
+  .modal-content {
+    background: #1e1e24;
+    border: 2px solid var(--accent-gold);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 440px;
+    padding: 16px;
+    max-height: 80vh;
+    overflow-y: auto;
+    text-align: center;
+  }
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .result-card {
+    background: #2a2a35;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .result-card.rank-3 {
+    border: 2px solid #00d2ff;
+    background: linear-gradient(135deg, #102a43, #243b53);
+  }
+  .result-card.rank-1 { border: 2px solid #ffd700; background: linear-gradient(135deg, #4a3b00, #2a0000); }
+  .result-card.rank-2 { border: 2px solid #ff00ff; background: linear-gradient(135deg, #3b004a, #1a002a); }
+
+  .badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #fff;
+    background: #555;
+  }
+  .rank-1 .badge { background: #ffd700; color: #000; }
+  .rank-2 .badge { background: #ff00ff; color: #fff; }
+  .rank-3 .badge { background: #00d2ff; color: #000; }
+
+  .card-name { font-size: 12px; font-weight: bold; }
+  .card-value { font-size: 11px; color: var(--accent-gold); margin-top: 4px; }
+
+  .close-btn {
+    margin-top: 16px;
+    width: 100%;
+    padding: 12px;
+    background: #444;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  <div class="header">
+    <div class="logo">ORIPA</div>
+    <div class="coin-status">🪙 <span id="user-coins">---</span> COIN</div>
+  </div>
+
+  <div class="oripa-card">
+    <div class="oripa-banner">
+      <div class="badge-return">総還元率 101%</div>
+      <h2 class="oripa-title">チャレンジオリパ</h2>
+      <div class="oripa-sub">※3等はコイン変換専用カード！</div>
+    </div>
+
+    <div class="oripa-info">
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="stock-bar"></div>
+      </div>
+      <div class="stock-text">残り <span id="stock-count">---</span> / <span id="stock-max">50000</span> 口</div>
+
+      <div class="btn-group">
+        <button class="btn-gacha" id="btn-1" onclick="playGacha(1)">1回 (50 COIN)</button>
+        <button class="btn-gacha" id="btn-10" onclick="playGacha(10)">10連 (500 COIN)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="loading-overlay">
+  <div>スプレッドシート処理中...</div>
+</div>
+
+<div class="modal-overlay" id="result-modal">
+  <div class="modal-content">
+    <h3 style="margin:0; color:var(--accent-gold);">ガチャ獲得結果</h3>
+    <p style="font-size:12px; color:#ccc; margin:4px 0 0 0;" id="modal-subtitle"></p>
+    <div class="result-grid" id="result-grid"></div>
+    <button class="close-btn" onclick="closeModal()">結果を確定して閉じる</button>
+  </div>
+</div>
+
+<script>
+  // 指定されたGASエンドポイントURL
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbxmG-ceRxiDCdfdLpXd-eZ9LGkw3Txfi-_OfcQGI--xo21qGELNVT9PLNJXDReP_7O1/exec";
+
+  const KEY_COINS = 'oripa_user_coins';
+  const KEY_STOCK = 'oripa_stock_count';
+  const MAX_STOCK = 50000;
+
+  let userCoins = 10000;
+  let stockCount = MAX_STOCK;
+
+  window.onload = function() {
+    loadLocalStorage();
+    updateUI();
+  };
+
+  function loadLocalStorage() {
+    const savedCoins = localStorage.getItem(KEY_COINS);
+    const savedStock = localStorage.getItem(KEY_STOCK);
+    if (savedCoins !== null) userCoins = parseInt(savedCoins, 10);
+    if (savedStock !== null) stockCount = parseInt(savedStock, 10);
+  }
+
+  function saveLocalStorage(coins, stock) {
+    userCoins = coins;
+    stockCount = stock;
+    localStorage.setItem(KEY_COINS, coins);
+    localStorage.setItem(KEY_STOCK, stock);
+    updateUI();
+  }
+
+  function updateUI() {
+    document.getElementById('user-coins').innerText = userCoins.toLocaleString();
+    document.getElementById('stock-count').innerText = stockCount.toLocaleString();
+    document.getElementById('stock-max').innerText = MAX_STOCK.toLocaleString();
+    const percentage = (stockCount / MAX_STOCK) * 100;
+    document.getElementById('stock-bar').style.width = percentage + '%';
+  }
+
+  async function playGacha(count) {
+    const cost = count * 50;
+    if (userCoins < cost) {
+      alert("コインが足りません！");
+      return;
+    }
+    if (stockCount < count) {
+      alert("残り口数が足りません！");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          action: 'playGacha',
+          count: count
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.error === 'INSUFFICIENT_COINS') {
+        alert("コインが足りません！");
+        return;
+      }
+      if (data.error === 'OUT_OF_STOCK') {
+        alert("在庫が切れています！");
+        return;
+      }
+
+      if (data.success) {
+        // スプレッドシート側の最新値をローカルストレージと表示に反映
+        saveLocalStorage(data.newCoins, data.remainingStock);
+        
+        // 排出結果を表示
+        showResults(count, data.results);
+      } else {
+        alert("ガチャ処理に失敗しました。");
+      }
+    } catch (err) {
+      console.error("通信エラー:", err);
+      alert("通信エラーが発生しました。GAS側のアクセス権限設定をご確認ください。");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function setLoading(isLoading) {
+    document.getElementById('loading-overlay').style.display = isLoading ? 'flex' : 'none';
+    document.getElementById('btn-1').disabled = isLoading;
+    document.getElementById('btn-10').disabled = isLoading;
+  }
+
+  function showResults(count, results) {
+    const grid = document.getElementById('result-grid');
+    grid.innerHTML = '';
+    document.getElementById('modal-subtitle').innerText = `${count}回引きました（獲得カード: ${count}枚）`;
+
+    results.forEach((item) => {
+      let cls = 'rank-miss';
+      if (item.rank === '1等') cls = 'rank-1';
+      else if (item.rank === '2等') cls = 'rank-2';
+      else if (item.rank === '3等') cls = 'rank-3';
+
+      const cardDiv = document.createElement('div');
+      cardDiv.className = `result-card ${cls}`;
+      cardDiv.innerHTML = `
+        <div class="badge">${item.rank}</div>
+        <div class="card-name">${item.name}</div>
+        <div class="card-value">${item.val}</div>
+      `;
+      grid.appendChild(cardDiv);
+    });
+
+    document.getElementById('result-modal').style.display = 'flex';
+  }
+
+  function closeModal() {
+    document.getElementById('result-modal').style.display = 'none';
+  }
+</script>
+</body>
+</html>
