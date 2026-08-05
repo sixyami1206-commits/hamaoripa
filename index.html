@@ -3,20 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DOPA風 オリパアプリ</title>
+  <title>カクオリパ</title>
   <style>
     :root {
-      --dopa-red: #e6002d;
-      --dopa-bg: #121212;
-      --card-bg: #1e1e1e;
-      --coin-gold: #ffcb05;
-      --text-gray: #aaaaaa;
+      --kaku-red: #ff0055;
+      --kaku-bg: #0d0d12;
+      --card-bg: #1a1a24;
+      --coin-gold: #ffd700;
+      --text-gray: #a0a0b0;
+      --paypal-blue: #003087;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
     body {
-      background-color: var(--dopa-bg);
+      background-color: var(--kaku-bg);
       color: #fff;
       padding-top: 60px;
       padding-bottom: 70px;
@@ -28,7 +29,7 @@
       width: 100%;
       max-width: 480px;
       min-height: 100vh;
-      background: var(--dopa-bg);
+      background: var(--kaku-bg);
       position: relative;
     }
 
@@ -39,30 +40,32 @@
       transform: translateX(-50%);
       width: 100%; max-width: 480px;
       height: 60px;
-      background: #181818;
+      background: #12121c;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 15px;
       z-index: 10;
-      border-bottom: 1px solid #2a2a2a;
+      border-bottom: 1px solid #252535;
     }
 
     .logo {
       font-size: 1.4rem;
       font-weight: 900;
-      color: var(--dopa-red);
-      letter-spacing: -1px;
+      color: var(--kaku-red);
+      letter-spacing: -0.5px;
+      text-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
     }
 
     .coin-status {
       display: flex;
       align-items: center;
-      background: #2a2a2a;
+      background: #222230;
       padding: 4px 12px;
       border-radius: 20px;
-      gap: 6px;
+      gap: 8px;
       font-weight: bold;
+      border: 1px solid rgba(255, 215, 0, 0.3);
     }
 
     .coin-icon {
@@ -74,29 +77,41 @@
       font-size: 0.75rem; font-weight: 900;
     }
 
+    .add-coin-btn {
+      background: var(--kaku-red);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 22px; height: 22px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
     /* カテゴリタブ */
     .category-bar {
       display: flex;
-      background: #181818;
-      border-bottom: 1px solid #2a2a2a;
-      overflow-x: auto;
+      background: #12121c;
+      border-bottom: 1px solid #252535;
     }
 
     .tab {
-      padding: 12px 18px;
-      font-size: 0.9rem;
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      font-size: 0.95rem;
       font-weight: bold;
       color: var(--text-gray);
-      white-space: nowrap;
       cursor: pointer;
     }
 
     .tab.active {
       color: #fff;
-      border-bottom: 3px solid var(--dopa-red);
+      border-bottom: 3px solid var(--kaku-red);
+      background: rgba(255, 0, 85, 0.05);
     }
 
-    /* 一覧表示カード */
+    /* パック一覧 */
     .pack-list {
       padding: 12px;
       display: flex;
@@ -108,9 +123,13 @@
       background: var(--card-bg);
       border-radius: 12px;
       overflow: hidden;
+      border: 1px solid #2a2a3a;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
       cursor: pointer;
+      transition: transform 0.2s;
     }
+
+    .pack-card:active { transform: scale(0.98); }
 
     .pack-banner {
       width: 100%;
@@ -119,15 +138,8 @@
       display: block;
     }
 
-    .pack-info {
-      padding: 12px;
-    }
-
-    .pack-title {
-      font-size: 1rem;
-      font-weight: bold;
-      margin-bottom: 8px;
-    }
+    .pack-info { padding: 12px; }
+    .pack-title { font-size: 1rem; font-weight: bold; margin-bottom: 8px; }
 
     .price-row {
       display: flex;
@@ -143,16 +155,11 @@
       display: flex; align-items: center; gap: 4px;
     }
 
-    .stock-text {
-      font-size: 0.8rem;
-      color: var(--text-gray);
-    }
+    .stock-text { font-size: 0.8rem; color: var(--text-gray); }
 
-    /* メーターバー */
     .progress-bar {
-      width: 100%;
-      height: 8px;
-      background: #333;
+      width: 100%; height: 8px;
+      background: #2a2a38;
       border-radius: 4px;
       overflow: hidden;
     }
@@ -162,41 +169,73 @@
       background: linear-gradient(90deg, #00ff88, #00f3ff);
     }
 
-    /* 動画再生モーダル */
-    .video-modal {
+    /* 下部ナビゲーション */
+    .footer-nav {
       position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #000;
-      z-index: 100;
-      display: none;
-      justify-content: center;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      height: 60px;
+      background: #12121c;
+      display: flex;
+      justify-content: space-around;
       align-items: center;
+      border-top: 1px solid #252535;
+      z-index: 10;
     }
 
-    .video-modal video { width: 100%; height: 100%; object-fit: contain; }
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      font-size: 0.75rem; color: var(--text-gray);
+      background: none; border: none; cursor: pointer;
+      gap: 3px;
+    }
 
-    /* ガチャ結果＆選択モーダル */
-    .result-modal {
+    .nav-item.active { color: var(--kaku-red); font-weight: bold; }
+
+    /* 汎用モーダル */
+    .modal {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.85);
       backdrop-filter: blur(5px);
-      z-index: 101;
+      z-index: 100;
       display: none;
       justify-content: center;
       align-items: center;
       padding: 20px;
     }
 
-    .result-box {
+    .modal-box {
       width: 100%; max-width: 360px;
-      background: #222;
-      border: 2px solid var(--dopa-red);
+      background: #1a1a24;
+      border: 2px solid var(--kaku-red);
       border-radius: 16px;
       padding: 20px;
       text-align: center;
+      position: relative;
     }
 
+    .modal-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; color: #fff; }
+
+    .close-icon {
+      position: absolute; top: 10px; right: 15px;
+      font-size: 1.5rem; color: var(--text-gray); cursor: pointer;
+    }
+
+    /* 動画モーダル */
+    .video-modal {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #000;
+      z-index: 101;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+    .video-modal video { width: 100%; height: 100%; object-fit: contain; }
+
+    /* 結果モーダル */
     .result-rank { font-size: 1.6rem; font-weight: 900; color: var(--coin-gold); margin-bottom: 10px; }
     .result-item-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; }
 
@@ -210,34 +249,20 @@
       cursor: pointer;
     }
     .btn-coin { background: var(--coin-gold); color: #000; }
-    .btn-ship { background: var(--dopa-red); color: #fff; }
+    .btn-ship { background: var(--kaku-red); color: #fff; }
+    .btn-paypal { background: var(--paypal-blue); color: #fff; font-size: 1.05rem; }
 
-    /* 発送住所フォーム */
-    .ship-form { display: none; text-align: left; margin-top: 15px; }
-    .ship-form input {
-      width: 100%; padding: 8px; margin: 5px 0 10px;
-      border-radius: 6px; border: 1px solid #444; background: #111; color: #fff;
+    /* フォーム要素 */
+    .form-input {
+      width: 100%; padding: 10px; margin: 8px 0 15px;
+      border-radius: 8px; border: 1px solid #3a3a4c; background: #0f0f15; color: #fff;
     }
 
-    /* 下部ナビゲーション */
-    .footer-nav {
-      position: fixed;
-      bottom: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 100%; max-width: 480px;
-      height: 60px;
-      background: #181818;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      border-top: 1px solid #2a2a2a;
+    /* 購入プラン一覧 */
+    .coin-plan {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #252535; padding: 12px; border-radius: 8px; margin-bottom: 10px;
     }
-
-    .nav-item {
-      display: flex; flex-direction: column; align-items: center;
-      font-size: 0.7rem; color: var(--text-gray);
-    }
-    .nav-item.active { color: var(--dopa-red); }
   </style>
 </head>
 <body>
@@ -245,32 +270,41 @@
   <div class="app-container">
     <!-- ヘッダー -->
     <header class="header">
-      <div class="logo">DOPA!</div>
+      <div class="logo">カクオリパ</div>
       <div class="coin-status">
         <div class="coin-icon">⚡</div>
         <span id="userCoins">10,000</span>
+        <button class="add-coin-btn" onclick="openModal('paypalModal')">＋</button>
       </div>
     </header>
 
     <!-- カテゴリタブ -->
     <div class="category-bar">
-      <div class="tab active">ポケモン</div>
-      <div class="tab">ワンピース</div>
-      <div class="tab">遊戯王</div>
+      <div class="tab active" onclick="switchTab(this)">ワンピース</div>
+      <div class="tab" onclick="switchTab(this)">海賊王</div>
     </div>
 
     <!-- パック一覧 -->
-    <div class="pack-list" id="packList">
-      <!-- JSでカード動的描画 -->
-    </div>
+    <div class="pack-list" id="packList"></div>
 
     <!-- 下部ナビ -->
     <nav class="footer-nav">
-      <div class="nav-item active">オリパ一覧</div>
-      <div class="nav-item">速報</div>
-      <div class="nav-item">ランキング</div>
-      <div class="nav-item">獲得履歴</div>
-      <div class="nav-item">マイページ</div>
+      <button class="nav-item active" onclick="scrollToTop()">
+        <span>🏠</span>
+        <span>オリパ一覧</span>
+      </button>
+      <button class="nav-item" onclick="openHistory()">
+        <span>📜</span>
+        <span>獲得履歴</span>
+      </button>
+      <button class="nav-item" onclick="openModal('addressModal')">
+        <span>📍</span>
+        <span>住所設定</span>
+      </button>
+      <button class="nav-item" onclick="openModal('paypalModal')">
+        <span>💳</span>
+        <span>COIN購入</span>
+      </button>
     </nav>
   </div>
 
@@ -279,9 +313,9 @@
     <video id="gachaVideo" playsinline></video>
   </div>
 
-  <!-- 結果＆還元/発送モーダル -->
-  <div class="result-modal" id="resultModal">
-    <div class="result-box">
+  <!-- ガチャ結果モーダル -->
+  <div class="modal" id="resultModal">
+    <div class="modal-box">
       <div class="result-rank" id="resRank">1等獲得！</div>
       <div class="result-item-name" id="resName">カード名</div>
 
@@ -290,12 +324,51 @@
         <button class="act-btn btn-ship" onclick="showShipForm()">自宅に発送する</button>
       </div>
 
-      <!-- 住所入力フォーム -->
-      <div class="ship-form" id="shipForm">
+      <div id="shipForm" style="display:none; text-align:left; margin-top:15px;">
         <label style="font-size:0.8rem">お届け先住所:</label>
-        <input type="text" id="addressInput" placeholder="東京都渋谷区...">
-        <button class="act-btn btn-ship" style="width:100%" onclick="submitShip()">発送を確定する</button>
+        <input type="text" class="form-input" id="addressInput" placeholder="住所を入力してください">
+        <button class="act-btn btn-ship" style="width:100%" onclick="submitShip()">発送確定</button>
       </div>
+    </div>
+  </div>
+
+  <!-- PayPal COIN購入モーダル -->
+  <div class="modal" id="paypalModal">
+    <div class="modal-box">
+      <span class="close-icon" onclick="closeModal('paypalModal')">×</span>
+      <div class="modal-title">COINチャージ (PayPal)</div>
+      
+      <div class="coin-plan">
+        <span>⚡ 1,000 COIN</span>
+        <button class="act-btn btn-paypal" onclick="buyCoins(1000, 1000)">¥1,000</button>
+      </div>
+      <div class="coin-plan">
+        <span>⚡ 5,500 COIN (500ptお得)</span>
+        <button class="act-btn btn-paypal" onclick="buyCoins(5500, 5000)">¥5,000</button>
+      </div>
+      <div class="coin-plan">
+        <span>⚡ 12,000 COIN (2000ptお得)</span>
+        <button class="act-btn btn-paypal" onclick="buyCoins(12000, 10000)">¥10,000</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 住所設定モーダル -->
+  <div class="modal" id="addressModal">
+    <div class="modal-box">
+      <span class="close-icon" onclick="closeModal('addressModal')">×</span>
+      <div class="modal-title">配送先住所の設定</div>
+      <input type="text" class="form-input" id="defaultAddress" placeholder="例: 東京都渋谷区宇田川町1-1">
+      <button class="act-btn btn-ship" style="width:100%" onclick="saveAddress()">保存する</button>
+    </div>
+  </div>
+
+  <!-- 獲得履歴モーダル -->
+  <div class="modal" id="historyModal">
+    <div class="modal-box">
+      <span class="close-icon" onclick="closeModal('historyModal')">×</span>
+      <div class="modal-title">獲得履歴</div>
+      <div id="historyList" style="max-height: 250px; overflow-y: auto; text-align: left; font-size:0.85rem;"></div>
     </div>
   </div>
 
@@ -306,14 +379,10 @@
     let userCoins = 10000;
     let packs = [];
     let currentWin = null;
+    let history = [];
+    let savedAddress = '';
 
-    // 還元コインマッピング
-    const COIN_RETURNS = {
-      '1等': 1600,
-      '2等': 600,
-      '3等': 10,
-      '4等': 1
-    };
+    const COIN_RETURNS = { '1等': 1600, '2等': 600, '3等': 10, '4等': 1 };
 
     async function loadData() {
       try {
@@ -341,8 +410,7 @@
       packs.forEach((p, idx) => {
         const cost = p['必要COIN'] || 0;
         const stock = p['在庫数'] || 100;
-        const maxStock = 50000; // 仮の総在庫基準
-        const percent = Math.min(100, (stock / maxStock) * 100);
+        const percent = Math.min(100, (stock / 50000) * 100);
 
         const card = document.createElement('div');
         card.className = 'pack-card';
@@ -369,15 +437,14 @@
       const cost = parseInt(p['必要COIN'] || 0);
 
       if (userCoins < cost) {
-        alert('コインが不足しています！');
+        alert('コインが不足しています！PayPalでチャージしてください。');
+        openModal('paypalModal');
         return;
       }
 
-      // コイン消費
       userCoins -= cost;
       document.getElementById('userCoins').innerText = userCoins.toLocaleString();
 
-      // 確率判定
       const p1 = parseFloat(p['1等確率'] || 0);
       const p2 = parseFloat(p['2等確率'] || 0);
       const p3 = parseFloat(p['3等確率'] || 0);
@@ -397,7 +464,6 @@
 
       currentWin = { rank, name };
 
-      // 動画再生
       const videoUrl = isSuperWin ? (p['確定演出動画'] || p['動画URL']) : p['動画URL'];
       if (videoUrl) {
         const modal = document.getElementById('videoModal');
@@ -417,34 +483,77 @@
     function showResultModal() {
       document.getElementById('resRank').innerText = `${currentWin.rank} 当選！`;
       document.getElementById('resName').innerText = currentWin.name;
-      
-      const returnCoins = COIN_RETURNS[currentWin.rank] || 1;
-      document.getElementById('coinVal').innerText = returnCoins;
-
+      document.getElementById('coinVal').innerText = COIN_RETURNS[currentWin.rank] || 1;
       document.getElementById('actionBtns').style.display = 'flex';
       document.getElementById('shipForm').style.display = 'none';
-      document.getElementById('resultModal').style.display = 'flex';
+      openModal('resultModal');
     }
 
     function convertCoin() {
       const addCoins = COIN_RETURNS[currentWin.rank] || 1;
       userCoins += addCoins;
       document.getElementById('userCoins').innerText = userCoins.toLocaleString();
+      history.push({ name: currentWin.name, rank: currentWin.rank, status: `${addCoins} COIN還元済` });
       alert(`${addCoins} COINに還元しました！`);
-      document.getElementById('resultModal').style.display = 'none';
+      closeModal('resultModal');
     }
 
     function showShipForm() {
       document.getElementById('actionBtns').style.display = 'none';
       document.getElementById('shipForm').style.display = 'block';
+      if (savedAddress) document.getElementById('addressInput').value = savedAddress;
     }
 
     function submitShip() {
       const addr = document.getElementById('addressInput').value;
       if (!addr) { alert('住所を入力してください'); return; }
-      alert(`【発送受付完了】\n${currentWin.name}\nお届け先: ${addr}`);
-      document.getElementById('resultModal').style.display = 'none';
+      savedAddress = addr;
+      history.push({ name: currentWin.name, rank: currentWin.rank, status: `発送受付済 (${addr})` });
+      alert(`【発送受付完了】\n${currentWin.name}`);
+      closeModal('resultModal');
     }
+
+    /* PayPal決済シミュレーション */
+    function buyCoins(amount, price) {
+      alert(`[PayPal決済に接続中...]\n金額: ¥${price.toLocaleString()}\n獲得: ${amount.toLocaleString()} COIN`);
+      userCoins += amount;
+      document.getElementById('userCoins').innerText = userCoins.toLocaleString();
+      alert(`決済が完了しました！ ${amount.toLocaleString()} COINをチャージしました。`);
+      closeModal('paypalModal');
+    }
+
+    function saveAddress() {
+      savedAddress = document.getElementById('defaultAddress').value;
+      alert('デフォルトの配送先住所を保存しました！');
+      closeModal('addressModal');
+    }
+
+    function openHistory() {
+      const container = document.getElementById('historyList');
+      if (history.length === 0) {
+        container.innerHTML = '<p style="color:var(--text-gray); text-align:center;">まだ獲得履歴がありません。</p>';
+      } else {
+        container.innerHTML = history.map(item => `
+          <div style="border-bottom: 1px solid #333; padding: 8px 0;">
+            <div style="color:var(--coin-gold); font-weight:bold;">${item.rank} - ${item.name}</div>
+            <div style="font-size:0.75rem; color:var(--text-gray);">${item.status}</div>
+          </div>
+        `).join('');
+      }
+      openModal('historyModal');
+    }
+
+    function switchTab(el) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
     loadData();
   </script>
