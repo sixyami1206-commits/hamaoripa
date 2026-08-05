@@ -363,8 +363,8 @@
       <div class="result-item-name" id="resName"></div>
 
       <div class="action-btns" id="actionBtns">
-        <button class="act-btn btn-coin" onclick="convertCoin()">すべてコインに変換 (<span id="coinVal">0</span> COIN)</button>
-        <button class="act-btn btn-ship" onclick="showShipForm()">自宅に発送する</button>
+        <button class="act-btn btn-coin" id="btnConvertCoin" onclick="convertCoin()">すべてコインに変換 (<span id="coinVal">0</span> COIN)</button>
+        <button class="act-btn btn-ship" id="btnShipItem" onclick="showShipForm()">自宅に発送する</button>
       </div>
 
       <div id="shipForm" style="display:none; text-align:left; margin-top:15px;">
@@ -394,7 +394,7 @@
         <button class="act-btn btn-paypal" onclick="redirectToPaypal('1000', '260')">¥260 で購入</button>
       </div>
 
-      <!-- チャージコード入力 (伏字化) -->
+      <!-- チャージコード入力 -->
       <div class="code-section">
         <div class="code-title">チャージコードをお持ちの方:</div>
         <input type="password" class="form-input" id="chargeCodeInput" placeholder="••••••••••••" style="margin-bottom:8px;">
@@ -435,10 +435,11 @@
     let history = JSON.parse(localStorage.getItem('kaku_history')) || [];
     
     let packs = [];
-    let currentResults = []; // ガチャ結果一時保存用
+    let currentResults = [];
     let totalReturnCoin = 0;
+    let hasOnlyCoinItems = false; // 「コイン付与」景品のみかどうかのフラグ
 
-    const COIN_RETURNS = { '1等': 1600, '2等': 600, '3等': 10, '4等': 1 };
+    const DEFAULT_COIN_RETURNS = { '1等': 1600, '2等': 600, '3等': 10, '4等': 1 };
 
     function updateStorage() {
       localStorage.setItem('kaku_coins', userCoins);
@@ -448,7 +449,6 @@
       document.getElementById('userCoins').innerText = userCoins.toLocaleString();
     }
 
-    // スプレッドシートデータ取得（5秒ごとに更新）
     async function loadData() {
       document.getElementById('userCoins').innerText = userCoins.toLocaleString();
       if (savedAddress) {
@@ -484,7 +484,6 @@
       }
     }
 
-    // 5秒周期で自動データチェック
     setInterval(loadData, 5000);
 
     function renderPackList() {
@@ -534,7 +533,20 @@
       return isNaN(num) ? 0 : num;
     }
 
-    // 確率計算用ガチャ処理
+    // 商品名から数値（コイン数）を動的に抽出する関数
+    function extractCoinAmount(itemName, rank) {
+      if (!itemName) return DEFAULT_COIN_RETURNS[rank] || 0;
+      
+      // 商品名の末尾や中に含まれる数字（カンマ等を除去して半角化）を抽出
+      const sanitized = String(itemName).replace(/,/g, '');
+      const match = sanitized.match(/\d+/);
+      
+      if (match) {
+        return parseInt(match[0], 10);
+      }
+      return DEFAULT_COIN_RETURNS[rank] || 0;
+    }
+
     function drawGacha(idx, count) {
       const p = packs[idx];
       const originalCost = parseInt(p['必要COIN'] || p['_col_1'] || 0);
@@ -550,16 +562,29 @@
       userCoins -= totalCost;
       updateStorage();
 
-      const w1 = parseToFloat(p['_rate1']);
-      const w2 = parseToFloat(p['_rate2']);
-      const w3 = parseToFloat(p['_rate3']);
-      const w4 = parseToFloat(p['_rate4']);
+      const baseW1 = parseToFloat(p['_rate1']);
+      const baseW2 = parseToFloat(p['_rate2']);
+      const baseW3 = parseToFloat(p['_rate3']);
+      const baseW4 = parseToFloat(p['_rate4']);
+
+      let w1 = baseW1;
+      let w2 = baseW2;
+      let w3 = baseW3;
+      let w4 = baseW4;
+
+      if (count > 1) {
+        w1 = baseW1 / count;
+        w2 = baseW2 / count;
+        w3 = baseW3 / count;
+        const div4 = Math.max(1, count / 2);
+        w4 = baseW4 / div4;
+      }
+
       const totalWeight = w1 + w2 + w3 + w4;
 
       currentResults = [];
       totalReturnCoin = 0;
 
-      // ガチャ判定ループ
       for (let i = 0; i < count; i++) {
         const rand = Math.random() * (totalWeight > 0 ? totalWeight : 100);
         let rank = '4等';
@@ -573,11 +598,19 @@
           rank = '3等'; name = p['3等'] || p['_col_6'];
         }
 
-        currentResults.push({ rank, name });
-        totalReturnCoin += (COIN_RETURNS[rank] || 1);
+        const coinAmount = extractCoinAmount(name, rank);
+        const isCoinGrant = String(name).includes('コイン付与');
+
+        currentResults.push({
+          rank,
+          name,
+          coinAmount,
+          isCoinGrant
+        });
+
+        totalReturnCoin += coinAmount;
       }
 
-      // 単発（1回）かつ1-2等または星演出を行う場合のみ演出を挟む
       if (count === 1) {
         const firstWin = currentResults[0];
         const isSuperWin = (firstWin.rank === '1等' || firstWin.rank === '2等');
@@ -589,7 +622,6 @@
           playStarEffect(firstWin.rank);
         }
       } else {
-        // 10連・100連・1000連は演出なしで即結果表示
         showResultModal();
       }
     }
@@ -647,14 +679,19 @@
     function showResultModal() {
       const resRank = document.getElementById('resRank');
       const resName = document.getElementById('resName');
+      const btnShipItem = document.getElementById('btnShipItem');
+      const btnConvertCoin = document.getElementById('btnConvertCoin');
+
+      // 全てのアイテムが「コイン付与（発送なし）」かどうかの判定
+      hasOnlyCoinItems = currentResults.every(r => r.isCoinGrant);
 
       if (currentResults.length === 1) {
-        resRank.innerText = `${currentResults[0].rank} 当選！`;
-        resName.innerText = currentResults[0].name;
+        const item = currentResults[0];
+        resRank.innerText = `${item.rank} 当選！`;
+        resName.innerText = item.name + (item.isCoinGrant ? ' [発送対象外]' : '');
       } else {
         resRank.innerText = `${currentResults.length}連ガチャ結果`;
         
-        // 内訳を集計
         let summary = {};
         currentResults.forEach(r => {
           summary[r.rank] = (summary[r.rank] || 0) + 1;
@@ -667,7 +704,7 @@
         summaryHtml += `</div><hr style="border-color:#333; margin:8px 0;"><div style="font-size:0.85rem;">`;
 
         summaryHtml += currentResults.map((item, idx) => `
-          <div style="margin-bottom:3px;">${idx+1}. <span style="color:var(--coin-gold);">${item.rank}</span>: ${item.name}</div>
+          <div style="margin-bottom:3px;">${idx+1}. <span style="color:var(--coin-gold);">${item.rank}</span>: ${item.name} ${item.isCoinGrant ? '<span style="color:#ff5555;">[発送なし]</span>' : ''}</div>
         `).join('');
         summaryHtml += `</div>`;
 
@@ -677,16 +714,30 @@
       document.getElementById('coinVal').innerText = totalReturnCoin.toLocaleString();
       document.getElementById('actionBtns').style.display = 'flex';
       document.getElementById('shipForm').style.display = 'none';
+
+      // 「コイン付与」景品のみの場合、発送ボタンを非表示にする
+      if (hasOnlyCoinItems) {
+        btnShipItem.style.display = 'none';
+        btnConvertCoin.innerText = `コインを受け取る (⚡ ${totalReturnCoin.toLocaleString()} COIN)`;
+      } else {
+        btnShipItem.style.display = 'block';
+        btnConvertCoin.innerText = `すべてコインに変換 (⚡ ${totalReturnCoin.toLocaleString()} COIN)`;
+      }
+
       openModal('resultModal');
     }
 
     function convertCoin() {
       userCoins += totalReturnCoin;
       currentResults.forEach(item => {
-        history.push({ name: item.name, rank: item.rank, status: `COIN還元済` });
+        history.push({ 
+          name: item.name, 
+          rank: item.rank, 
+          status: item.isCoinGrant ? `自動コイン付与済(+${item.coinAmount}COIN)` : `COIN還元済(+${item.coinAmount}COIN)` 
+        });
       });
       updateStorage();
-      alert(`⚡ ${totalReturnCoin.toLocaleString()} COIN に還元しました！`);
+      alert(`⚡ ${totalReturnCoin.toLocaleString()} COIN を受け取りました！`);
       closeModal('resultModal');
     }
 
@@ -700,11 +751,18 @@
       const addr = document.getElementById('addressInput').value;
       if (!addr) { alert('住所を入力してください'); return; }
       savedAddress = addr;
+      
       currentResults.forEach(item => {
-        history.push({ name: item.name, rank: item.rank, status: `発送受付済 (${addr})` });
+        if (item.isCoinGrant) {
+          userCoins += item.coinAmount;
+          history.push({ name: item.name, rank: item.rank, status: `自動コイン付与済(+${item.coinAmount}COIN)` });
+        } else {
+          history.push({ name: item.name, rank: item.rank, status: `発送受付済 (${addr})` });
+        }
       });
+
       updateStorage();
-      alert(`【発送受付完了】\n獲得アイテムの発送受付を完了しました。`);
+      alert(`【発送受付完了】\n対象の景品の発送受付を完了しました。（コイン付与景品は直接アカウントに付与されました）`);
       closeModal('resultModal');
     }
 
@@ -768,7 +826,6 @@
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // 初回起動
     loadData();
   </script>
 </body>
