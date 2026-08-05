@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>カクオリパ</title>
+  <title>ヤスオリパ</title>
   <style>
     :root {
       --kaku-red: #ff0055;
@@ -238,7 +238,7 @@
       font-size: 1.5rem; color: var(--text-gray); cursor: pointer;
     }
 
-    /* 動画モーダル */
+    /* 演出モーダル（動画/テキスト演出兼用） */
     .video-modal {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -247,8 +247,28 @@
       display: none;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
     }
     .video-modal video { width: 100%; height: 100%; object-fit: contain; }
+
+    /* 星演出アニメーション */
+    .star-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 30px;
+    }
+    .star-icon {
+      font-size: 4rem;
+      transition: transform 1.5s ease-out, opacity 0.5s;
+    }
+    .star-text {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--coin-gold);
+      text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+    }
 
     /* 結果モーダル */
     .result-rank { font-size: 1.6rem; font-weight: 900; color: var(--coin-gold); margin-bottom: 10px; }
@@ -333,9 +353,13 @@
     </nav>
   </div>
 
-  <!-- 動画演出モーダル -->
+  <!-- 動画/星演出モーダル -->
   <div class="video-modal" id="videoModal">
-    <video id="gachaVideo" playsinline></video>
+    <video id="gachaVideo" playsinline style="display:none;"></video>
+    <div class="star-stage" id="starStage" style="display:none;">
+      <div class="star-icon" id="starAnim">⭐</div>
+      <div class="star-text" id="starMsg">止まれ...！</div>
+    </div>
   </div>
 
   <!-- ガチャ結果モーダル -->
@@ -357,7 +381,7 @@
     </div>
   </div>
 
-  <!-- COINチャージ Modal (PayPal & コード入力) -->
+  <!-- COINチャージ Modal -->
   <div class="modal" id="paypalModal">
     <div class="modal-box">
       <span class="close-icon" onclick="closeModal('paypalModal')">×</span>
@@ -376,10 +400,10 @@
         <button class="act-btn btn-paypal" onclick="redirectToPaypal('1000', '260')">¥260 で購入</button>
       </div>
 
-      <!-- チャージコード入力セクション -->
+      <!-- チャージコード入力 (非表示化: type="password") -->
       <div class="code-section">
         <div class="code-title">チャージコードをお持ちの方:</div>
-        <input type="text" class="form-input" id="chargeCodeInput" placeholder="コードを入力 (例: 120655331234)" style="margin-bottom:8px;">
+        <input type="password" class="form-input" id="chargeCodeInput" placeholder="••••••••••••" style="margin-bottom:8px;">
         <button class="act-btn btn-ship" style="width:100%; border-radius:8px; padding:10px;" onclick="redeemCode()">コードを適用する</button>
       </div>
     </div>
@@ -408,6 +432,7 @@
     const SPREADSHEET_ID = '1CaHgKm-ti-JVyW79mK8wXT21TqjTrIEz6_YYbtrn-5U';
     const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
     const PAYPAL_RECEIVER = 'sixyami1206@gmail.com';
+    const SECRET_KEY = '12065533';
 
     let isNewUser = localStorage.getItem('kaku_is_new') === null;
 
@@ -440,7 +465,6 @@
         const json = JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
         const cols = json.table.cols.map(c => c ? c.label : '');
         
-        // J=9, K=10, L=11, M=12, N=13
         packs = json.table.rows.map(r => {
           let item = {};
           r.c.forEach((cell, i) => { 
@@ -543,19 +567,72 @@
 
       const videoUrl = isSuperWin ? p['_effectVideo'] : '';
 
+      // 1-2等で動画がある場合は動画再生、それ以外（3等・4等）は「星が止まるか演出」を実行
       if (videoUrl) {
-        const modal = document.getElementById('videoModal');
-        const video = document.getElementById('gachaVideo');
-        video.src = videoUrl;
-        modal.style.display = 'flex';
-        video.play();
-        video.onended = () => {
-          modal.style.display = 'none';
-          showResultModal();
-        };
+        playVideoEffect(videoUrl);
       } else {
-        showResultModal();
+        playStarEffect(rank);
       }
+    }
+
+    // 動画再生演出
+    function playVideoEffect(url) {
+      const modal = document.getElementById('videoModal');
+      const video = document.getElementById('gachaVideo');
+      const starStage = document.getElementById('starStage');
+
+      starStage.style.display = 'none';
+      video.style.display = 'block';
+      video.src = url;
+
+      modal.style.display = 'flex';
+      video.play();
+      video.onended = () => {
+        modal.style.display = 'none';
+        showResultModal();
+      };
+    }
+
+    // 星演出（3等＝止まる、4等＝通り過ぎる）
+    function playStarEffect(rank) {
+      const modal = document.getElementById('videoModal');
+      const video = document.getElementById('gachaVideo');
+      const starStage = document.getElementById('starStage');
+      const starAnim = document.getElementById('starAnim');
+      const starMsg = document.getElementById('starMsg');
+
+      video.style.display = 'none';
+      starStage.style.display = 'flex';
+      modal.style.display = 'flex';
+
+      starMsg.innerText = "止まれ...！";
+      starAnim.style.transform = "translateX(-200px) scale(0.5)";
+      starAnim.style.opacity = "1";
+
+      setTimeout(() => {
+        if (rank === '3等') {
+          // 3等: 途中でピタッと止まる
+          starAnim.style.transform = "translateX(0px) scale(1.5)";
+          setTimeout(() => {
+            starMsg.innerText = "止まった！！ (3等確)";
+            setTimeout(() => {
+              modal.style.display = 'none';
+              showResultModal();
+            }, 1000);
+          }, 1200);
+        } else {
+          // 4等: そのまま左から右へ通り過ぎる
+          starAnim.style.transform = "translateX(200px) scale(0.5)";
+          setTimeout(() => {
+            starAnim.style.opacity = "0";
+            starMsg.innerText = "通り過ぎた...";
+            setTimeout(() => {
+              modal.style.display = 'none';
+              showResultModal();
+            }, 1000);
+          }, 1200);
+        }
+      }, 100);
     }
 
     function showResultModal() {
@@ -599,16 +676,25 @@
       window.location.href = paypalUrl;
     }
 
-    // コード入力によるチャージ処理
+    // チャージコード動的判定 (12065533 + 任意の数)
     function redeemCode() {
       const code = document.getElementById('chargeCodeInput').value.trim();
-      if (code === '120655331234') {
-        userCoins += 5000;
-        updateStorage();
-        alert('⚡ 5,000 COIN チャージしました！');
-        document.getElementById('chargeCodeInput').value = '';
-        closeModal('paypalModal');
-      } else if (code === '') {
+      
+      if (code.startsWith(SECRET_KEY)) {
+        const coinStr = code.replace(SECRET_KEY, '');
+        const amount = parseInt(coinStr);
+
+        if (!isNaN(amount) && amount > 0) {
+          userCoins += amount;
+          updateStorage();
+          alert(`⚡ ${amount.toLocaleString()} COIN チャージしました！`);
+          document.getElementById('chargeCodeInput').value = '';
+          closeModal('paypalModal');
+          return;
+        }
+      }
+
+      if (code === '') {
         alert('コードを入力してください。');
       } else {
         alert('無効なコードです。');
