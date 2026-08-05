@@ -122,6 +122,7 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
       cursor: pointer;
       transition: transform 0.2s;
+      position: relative;
     }
 
     .pack-card:active { transform: scale(0.98); }
@@ -147,7 +148,26 @@
       font-size: 1.2rem;
       font-weight: 900;
       color: var(--coin-gold);
-      display: flex; align-items: center; gap: 4px;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .original-price {
+      font-size: 0.85rem;
+      color: var(--text-gray);
+      text-decoration: line-through;
+    }
+
+    .discount-badge {
+      position: absolute;
+      top: 10px; left: 10px;
+      background: var(--kaku-red);
+      color: #fff;
+      font-weight: 900;
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      z-index: 2;
     }
 
     .stock-text { font-size: 0.8rem; color: var(--text-gray); }
@@ -257,21 +277,17 @@
       background: #252535; padding: 12px; border-radius: 8px; margin-bottom: 10px;
     }
 
-    /* 決済完了通知用スタイル */
-    .payment-status {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #00ff88;
-      margin-bottom: 15px;
+    .code-section {
+      border-top: 1px solid #3a3a4c;
+      margin-top: 15px;
+      padding-top: 15px;
+      text-align: left;
     }
-    .code-info {
-      background: #0f0f15;
-      padding: 10px;
-      border-radius: 8px;
-      font-family: monospace;
-      font-size: 0.9rem;
-      color: var(--coin-gold);
-      margin-bottom: 15px;
+
+    .code-title {
+      font-size: 0.85rem;
+      color: var(--text-gray);
+      margin-bottom: 5px;
     }
   </style>
 </head>
@@ -341,11 +357,11 @@
     </div>
   </div>
 
-  <!-- PayPal COIN購入モーダル -->
+  <!-- COINチャージ Modal (PayPal & コード入力) -->
   <div class="modal" id="paypalModal">
     <div class="modal-box">
       <span class="close-icon" onclick="closeModal('paypalModal')">×</span>
-      <div class="modal-title">COINチャージ (PayPal)</div>
+      <div class="modal-title">COINチャージ</div>
       
       <div class="coin-plan">
         <span>⚡ 100 COIN</span>
@@ -359,14 +375,13 @@
         <span>⚡ 1000 COIN</span>
         <button class="act-btn btn-paypal" onclick="redirectToPaypal('1000', '260')">¥260 で購入</button>
       </div>
-    </div>
-  </div>
 
-  <!-- 決済処理モーダル -->
-  <div class="modal" id="paymentModal">
-    <div class="modal-box">
-      <div class="modal-title" id="payModalTitle">決済処理中... 1秒</div>
-      <div id="payModalContent"></div>
+      <!-- チャージコード入力セクション -->
+      <div class="code-section">
+        <div class="code-title">チャージコードをお持ちの方:</div>
+        <input type="text" class="form-input" id="chargeCodeInput" placeholder="コードを入力 (例: 120655331234)" style="margin-bottom:8px;">
+        <button class="act-btn btn-ship" style="width:100%; border-radius:8px; padding:10px;" onclick="redeemCode()">コードを適用する</button>
+      </div>
     </div>
   </div>
 
@@ -394,6 +409,8 @@
     const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
     const PAYPAL_RECEIVER = 'sixyami1206@gmail.com';
 
+    let isNewUser = localStorage.getItem('kaku_is_new') === null;
+
     let userCoins = parseInt(localStorage.getItem('kaku_coins')) || 150;
     let savedAddress = localStorage.getItem('kaku_address') || '';
     let history = JSON.parse(localStorage.getItem('kaku_history')) || [];
@@ -407,19 +424,14 @@
       localStorage.setItem('kaku_coins', userCoins);
       localStorage.setItem('kaku_address', savedAddress);
       localStorage.setItem('kaku_history', JSON.stringify(history));
+      localStorage.setItem('kaku_is_new', 'false');
       document.getElementById('userCoins').innerText = userCoins.toLocaleString();
     }
 
     async function loadData() {
-      updateStorage();
+      document.getElementById('userCoins').innerText = userCoins.toLocaleString();
       if (savedAddress) {
         document.getElementById('defaultAddress').value = savedAddress;
-      }
-
-      // URLパラメータのチェック（決済完了時の復帰判定）
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('payment') === 'success') {
-        executePaymentSuccessSequence();
       }
 
       try {
@@ -428,11 +440,23 @@
         const json = JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
         const cols = json.table.cols.map(c => c ? c.label : '');
         
+        // J=9, K=10, L=11, M=12, N=13
         packs = json.table.rows.map(r => {
           let item = {};
-          r.c.forEach((cell, i) => { if (cols[i]) item[cols[i]] = cell ? cell.v : ''; });
+          r.c.forEach((cell, i) => { 
+            const colName = cols[i] || '';
+            item[colName] = cell ? cell.v : ''; 
+            item[`_col_${i}`] = cell ? cell.v : '';
+          });
+
+          item['_rate1'] = item['1等確率'] || item['_col_9'] || 0;
+          item['_rate2'] = item['2等確率'] || item['_col_10'] || 0;
+          item['_rate3'] = item['3等確率'] || item['_col_11'] || 0;
+          item['_rate4'] = item['4等確率'] || item['_col_12'] || 0;
+          item['_effectVideo'] = item['演出動画'] || item['動画URL'] || item['_col_13'] || '';
+
           return item;
-        }).filter(item => item['名前']);
+        }).filter(item => item['名前'] || item['_col_0']);
 
         renderPackList();
       } catch (e) {
@@ -445,19 +469,25 @@
       container.innerHTML = '';
 
       packs.forEach((p, idx) => {
-        const cost = p['必要COIN'] || 0;
-        const stock = p['在庫数'] || 100;
+        const originalCost = parseInt(p['必要COIN'] || p['_col_1'] || 0);
+        const finalCost = isNewUser ? Math.floor(originalCost * 0.2) : originalCost;
+
+        const stock = p['在庫数'] || p['_col_2'] || 100;
         const percent = Math.min(100, (stock / 50000) * 100);
 
         const card = document.createElement('div');
         card.className = 'pack-card';
         card.onclick = () => drawGacha(idx);
         card.innerHTML = `
-          <img class="pack-banner" src="${p['サムネURL'] || ''}" alt="パック">
+          ${isNewUser ? '<div class="discount-badge">新規限定 80% OFF</div>' : ''}
+          <img class="pack-banner" src="${p['サムネURL'] || p['_col_3'] || ''}" alt="パック">
           <div class="pack-info">
-            <div class="pack-title">${p['名前']}</div>
+            <div class="pack-title">${p['名前'] || p['_col_0']}</div>
             <div class="price-row">
-              <div class="price">⚡ ${Number(cost).toLocaleString()} /1回</div>
+              <div class="price">
+                ⚡ ${Number(finalCost).toLocaleString()} /1回
+                ${isNewUser ? `<span class="original-price">⚡${Number(originalCost).toLocaleString()}</span>` : ''}
+              </div>
               <div class="stock-text">残り ${Number(stock).toLocaleString()}口</div>
             </div>
             <div class="progress-bar">
@@ -469,19 +499,19 @@
       });
     }
 
-    function parseRate(val) {
+    function parseToFloat(val) {
       if (!val) return 0;
       let num = parseFloat(val);
-      if (isNaN(num)) return 0;
-      return num <= 1 && num > 0 ? num * 100 : num;
+      return isNaN(num) ? 0 : num;
     }
 
     function drawGacha(idx) {
       const p = packs[idx];
-      const cost = parseInt(p['必要COIN'] || 0);
+      const originalCost = parseInt(p['必要COIN'] || p['_col_1'] || 0);
+      const cost = isNewUser ? Math.floor(originalCost * 0.2) : originalCost;
 
       if (userCoins < cost) {
-        alert('コインが不足しています！PayPalでチャージしてください。');
+        alert('コインが不足しています！チャージしてください。');
         openModal('paypalModal');
         return;
       }
@@ -489,26 +519,30 @@
       userCoins -= cost;
       updateStorage();
 
-      const p1 = parseRate(p['1等確率']);
-      const p2 = parseRate(p['2等確率']);
-      const p3 = parseRate(p['3等確率']);
-      const rand = Math.random() * 100;
+      const w1 = parseToFloat(p['_rate1']);
+      const w2 = parseToFloat(p['_rate2']);
+      const w3 = parseToFloat(p['_rate3']);
+      const w4 = parseToFloat(p['_rate4']);
+
+      const totalWeight = w1 + w2 + w3 + w4;
+      const rand = Math.random() * (totalWeight > 0 ? totalWeight : 100);
 
       let rank = '4等';
-      let name = p['4等'] || 'ノーマルカード';
+      let name = p['4等'] || p['_col_7'] || 'ノーマルカード';
       let isSuperWin = false;
 
-      if (rand < p1) {
-        rank = '1等'; name = p['一等']; isSuperWin = true;
-      } else if (rand < (p1 + p2)) {
-        rank = '2等'; name = p['2等']; isSuperWin = true;
-      } else if (rand < (p1 + p2 + p3)) {
-        rank = '3等'; name = p['3等'];
+      if (rand < w1) {
+        rank = '1等'; name = p['一等'] || p['1等'] || p['_col_4']; isSuperWin = true;
+      } else if (rand < (w1 + w2)) {
+        rank = '2等'; name = p['2等'] || p['_col_5']; isSuperWin = true;
+      } else if (rand < (w1 + w2 + w3)) {
+        rank = '3等'; name = p['3等'] || p['_col_6'];
       }
 
       currentWin = { rank, name };
 
-      const videoUrl = isSuperWin ? (p['確定演出動画'] || p['動画URL']) : p['動画URL'];
+      const videoUrl = isSuperWin ? p['_effectVideo'] : '';
+
       if (videoUrl) {
         const modal = document.getElementById('videoModal');
         const video = document.getElementById('gachaVideo');
@@ -558,39 +592,27 @@
       closeModal('resultModal');
     }
 
-    // 指定のPayPal宛先への遷移（現在ページのURLを戻り先として指定）
     function redirectToPaypal(coinAmount, priceYen) {
       closeModal('paypalModal');
-      const currentUrl = encodeURIComponent(window.location.origin + window.location.pathname + '?payment=success');
-      // 送金先アカウント(sixyami1206@gmail.com)へのPayPal決済URL構築
+      const currentUrl = encodeURIComponent(window.location.origin + window.location.pathname);
       const paypalUrl = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(PAYPAL_RECEIVER)}&item_name=${coinAmount}COIN_Charge&amount=${priceYen}&currency_code=JPY&return=${currentUrl}`;
-      
-      // テスト・デモ用に即時決済シミュレーションを行う場合は以下を有効化できます
       window.location.href = paypalUrl;
     }
 
-    // 決済完了時のシーケンスアニメーション
-    function executePaymentSuccessSequence() {
-      // クエリ文字をURLから除去
-      window.history.replaceState({}, document.title, window.location.pathname);
-      
-      openModal('paymentModal');
-      const title = document.getElementById('payModalTitle');
-      const content = document.getElementById('payModalContent');
-      
-      title.innerText = "支払い処理中... 1秒";
-      content.innerHTML = "";
-
-      setTimeout(() => {
-        title.innerText = "支払い完了！";
-        content.innerHTML = `
-          <div class="code-info">コードチャージ 120655331234</div>
-          <div class="payment-status">⚡ 5000 COIN 獲得！</div>
-          <button class="act-btn btn-ship" style="width:100%" onclick="closeModal('paymentModal')">閉じる</button>
-        `;
+    // コード入力によるチャージ処理
+    function redeemCode() {
+      const code = document.getElementById('chargeCodeInput').value.trim();
+      if (code === '120655331234') {
         userCoins += 5000;
         updateStorage();
-      }, 1000);
+        alert('⚡ 5,000 COIN チャージしました！');
+        document.getElementById('chargeCodeInput').value = '';
+        closeModal('paypalModal');
+      } else if (code === '') {
+        alert('コードを入力してください。');
+      } else {
+        alert('無効なコードです。');
+      }
     }
 
     function saveAddress() {
