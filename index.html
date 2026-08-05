@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ヤスオリパ</title>
+  <title>カクオリパ</title>
   <style>
     :root {
       --kaku-red: #ff0055;
@@ -120,12 +120,8 @@
       overflow: hidden;
       border: 1px solid #2a2a3a;
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-      cursor: pointer;
-      transition: transform 0.2s;
       position: relative;
     }
-
-    .pack-card:active { transform: scale(0.98); }
 
     .pack-banner {
       width: 100%;
@@ -145,7 +141,7 @@
     }
 
     .price {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: 900;
       color: var(--coin-gold);
       display: flex; align-items: center; gap: 6px;
@@ -177,12 +173,35 @@
       background: #2a2a38;
       border-radius: 4px;
       overflow: hidden;
+      margin-bottom: 12px;
     }
 
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, #00ff88, #00f3ff);
     }
+
+    /* ガチャボタンエリア */
+    .gacha-btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .gacha-btn {
+      background: linear-gradient(135deg, #ff0055, #ff5500);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 4px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(255, 0, 85, 0.3);
+      transition: transform 0.1s;
+    }
+
+    .gacha-btn:active { transform: scale(0.96); }
 
     /* 下部ナビゲーション */
     .footer-nav {
@@ -238,7 +257,7 @@
       font-size: 1.5rem; color: var(--text-gray); cursor: pointer;
     }
 
-    /* 演出モーダル（動画/テキスト演出兼用） */
+    /* 演出モーダル */
     .video-modal {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -251,37 +270,20 @@
     }
     .video-modal video { width: 100%; height: 100%; object-fit: contain; }
 
-    /* 星演出アニメーション */
+    /* 星演出 */
     .star-stage {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 30px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px;
     }
-    .star-icon {
-      font-size: 4rem;
-      transition: transform 1.5s ease-out, opacity 0.5s;
-    }
-    .star-text {
-      font-size: 1.5rem;
-      font-weight: 900;
-      color: var(--coin-gold);
-      text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
-    }
+    .star-icon { font-size: 4rem; transition: transform 1.5s ease-out, opacity 0.5s; }
+    .star-text { font-size: 1.5rem; font-weight: 900; color: var(--coin-gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
 
     /* 結果モーダル */
-    .result-rank { font-size: 1.6rem; font-weight: 900; color: var(--coin-gold); margin-bottom: 10px; }
-    .result-item-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; }
+    .result-rank { font-size: 1.5rem; font-weight: 900; color: var(--coin-gold); margin-bottom: 10px; }
+    .result-item-name { font-size: 1.05rem; font-weight: bold; margin-bottom: 15px; max-height: 180px; overflow-y: auto; text-align: left; background: #0f0f15; padding: 10px; border-radius: 8px; }
 
     .action-btns { display: flex; flex-direction: column; gap: 10px; }
     .act-btn {
-      padding: 12px;
-      border: none;
-      border-radius: 25px;
-      font-weight: bold;
-      font-size: 0.95rem;
-      cursor: pointer;
+      padding: 12px; border: none; border-radius: 25px; font-weight: bold; font-size: 0.95rem; cursor: pointer;
     }
     .btn-coin { background: var(--coin-gold); color: #000; }
     .btn-ship { background: var(--kaku-red); color: #fff; }
@@ -298,17 +300,9 @@
     }
 
     .code-section {
-      border-top: 1px solid #3a3a4c;
-      margin-top: 15px;
-      padding-top: 15px;
-      text-align: left;
+      border-top: 1px solid #3a3a4c; margin-top: 15px; padding-top: 15px; text-align: left;
     }
-
-    .code-title {
-      font-size: 0.85rem;
-      color: var(--text-gray);
-      margin-bottom: 5px;
-    }
+    .code-title { font-size: 0.85rem; color: var(--text-gray); margin-bottom: 5px; }
   </style>
 </head>
 <body>
@@ -365,11 +359,11 @@
   <!-- ガチャ結果モーダル -->
   <div class="modal" id="resultModal">
     <div class="modal-box">
-      <div class="result-rank" id="resRank">1等獲得！</div>
-      <div class="result-item-name" id="resName">カード名</div>
+      <div class="result-rank" id="resRank">結果発表</div>
+      <div class="result-item-name" id="resName"></div>
 
       <div class="action-btns" id="actionBtns">
-        <button class="act-btn btn-coin" onclick="convertCoin()">コインに変換 (<span id="coinVal">0</span> COIN)</button>
+        <button class="act-btn btn-coin" onclick="convertCoin()">すべてコインに変換 (<span id="coinVal">0</span> COIN)</button>
         <button class="act-btn btn-ship" onclick="showShipForm()">自宅に発送する</button>
       </div>
 
@@ -400,7 +394,7 @@
         <button class="act-btn btn-paypal" onclick="redirectToPaypal('1000', '260')">¥260 で購入</button>
       </div>
 
-      <!-- チャージコード入力 (非表示化: type="password") -->
+      <!-- チャージコード入力 (伏字化) -->
       <div class="code-section">
         <div class="code-title">チャージコードをお持ちの方:</div>
         <input type="password" class="form-input" id="chargeCodeInput" placeholder="••••••••••••" style="margin-bottom:8px;">
@@ -441,7 +435,8 @@
     let history = JSON.parse(localStorage.getItem('kaku_history')) || [];
     
     let packs = [];
-    let currentWin = null;
+    let currentResults = []; // ガチャ結果一時保存用
+    let totalReturnCoin = 0;
 
     const COIN_RETURNS = { '1等': 1600, '2等': 600, '3等': 10, '4等': 1 };
 
@@ -453,6 +448,7 @@
       document.getElementById('userCoins').innerText = userCoins.toLocaleString();
     }
 
+    // スプレッドシートデータ取得（5秒ごとに更新）
     async function loadData() {
       document.getElementById('userCoins').innerText = userCoins.toLocaleString();
       if (savedAddress) {
@@ -484,9 +480,12 @@
 
         renderPackList();
       } catch (e) {
-        console.error(e);
+        console.error("データ同期エラー:", e);
       }
     }
+
+    // 5秒周期で自動データチェック
+    setInterval(loadData, 5000);
 
     function renderPackList() {
       const container = document.getElementById('packList');
@@ -501,7 +500,6 @@
 
         const card = document.createElement('div');
         card.className = 'pack-card';
-        card.onclick = () => drawGacha(idx);
         card.innerHTML = `
           ${isNewUser ? '<div class="discount-badge">新規限定 80% OFF</div>' : ''}
           <img class="pack-banner" src="${p['サムネURL'] || p['_col_3'] || ''}" alt="パック">
@@ -517,6 +515,13 @@
             <div class="progress-bar">
               <div class="progress-fill" style="width: ${percent}%"></div>
             </div>
+            
+            <div class="gacha-btn-grid">
+              <button class="gacha-btn" onclick="drawGacha(${idx}, 1)">1回引く</button>
+              <button class="gacha-btn" onclick="drawGacha(${idx}, 10)">10回引く</button>
+              <button class="gacha-btn" onclick="drawGacha(${idx}, 100)">100回引く</button>
+              <button class="gacha-btn" onclick="drawGacha(${idx}, 1000)">1000回ひく！</button>
+            </div>
           </div>
         `;
         container.appendChild(card);
@@ -529,53 +534,66 @@
       return isNaN(num) ? 0 : num;
     }
 
-    function drawGacha(idx) {
+    // 確率計算用ガチャ処理
+    function drawGacha(idx, count) {
       const p = packs[idx];
       const originalCost = parseInt(p['必要COIN'] || p['_col_1'] || 0);
-      const cost = isNewUser ? Math.floor(originalCost * 0.2) : originalCost;
+      const singleCost = isNewUser ? Math.floor(originalCost * 0.2) : originalCost;
+      const totalCost = singleCost * count;
 
-      if (userCoins < cost) {
-        alert('コインが不足しています！チャージしてください。');
+      if (userCoins < totalCost) {
+        alert(`コインが不足しています！（必要: ⚡${totalCost.toLocaleString()} COIN）`);
         openModal('paypalModal');
         return;
       }
 
-      userCoins -= cost;
+      userCoins -= totalCost;
       updateStorage();
 
       const w1 = parseToFloat(p['_rate1']);
       const w2 = parseToFloat(p['_rate2']);
       const w3 = parseToFloat(p['_rate3']);
       const w4 = parseToFloat(p['_rate4']);
-
       const totalWeight = w1 + w2 + w3 + w4;
-      const rand = Math.random() * (totalWeight > 0 ? totalWeight : 100);
 
-      let rank = '4等';
-      let name = p['4等'] || p['_col_7'] || 'ノーマルカード';
-      let isSuperWin = false;
+      currentResults = [];
+      totalReturnCoin = 0;
 
-      if (rand < w1) {
-        rank = '1等'; name = p['一等'] || p['1等'] || p['_col_4']; isSuperWin = true;
-      } else if (rand < (w1 + w2)) {
-        rank = '2等'; name = p['2等'] || p['_col_5']; isSuperWin = true;
-      } else if (rand < (w1 + w2 + w3)) {
-        rank = '3等'; name = p['3等'] || p['_col_6'];
+      // ガチャ判定ループ
+      for (let i = 0; i < count; i++) {
+        const rand = Math.random() * (totalWeight > 0 ? totalWeight : 100);
+        let rank = '4等';
+        let name = p['4等'] || p['_col_7'] || 'ノーマルカード';
+
+        if (rand < w1) {
+          rank = '1等'; name = p['一等'] || p['1等'] || p['_col_4'];
+        } else if (rand < (w1 + w2)) {
+          rank = '2等'; name = p['2等'] || p['_col_5'];
+        } else if (rand < (w1 + w2 + w3)) {
+          rank = '3等'; name = p['3等'] || p['_col_6'];
+        }
+
+        currentResults.push({ rank, name });
+        totalReturnCoin += (COIN_RETURNS[rank] || 1);
       }
 
-      currentWin = { rank, name };
+      // 単発（1回）かつ1-2等または星演出を行う場合のみ演出を挟む
+      if (count === 1) {
+        const firstWin = currentResults[0];
+        const isSuperWin = (firstWin.rank === '1等' || firstWin.rank === '2等');
+        const videoUrl = isSuperWin ? p['_effectVideo'] : '';
 
-      const videoUrl = isSuperWin ? p['_effectVideo'] : '';
-
-      // 1-2等で動画がある場合は動画再生、それ以外（3等・4等）は「星が止まるか演出」を実行
-      if (videoUrl) {
-        playVideoEffect(videoUrl);
+        if (videoUrl) {
+          playVideoEffect(videoUrl);
+        } else {
+          playStarEffect(firstWin.rank);
+        }
       } else {
-        playStarEffect(rank);
+        // 10連・100連・1000連は演出なしで即結果表示
+        showResultModal();
       }
     }
 
-    // 動画再生演出
     function playVideoEffect(url) {
       const modal = document.getElementById('videoModal');
       const video = document.getElementById('gachaVideo');
@@ -593,7 +611,6 @@
       };
     }
 
-    // 星演出（3等＝止まる、4等＝通り過ぎる）
     function playStarEffect(rank) {
       const modal = document.getElementById('videoModal');
       const video = document.getElementById('gachaVideo');
@@ -611,45 +628,65 @@
 
       setTimeout(() => {
         if (rank === '3等') {
-          // 3等: 途中でピタッと止まる
           starAnim.style.transform = "translateX(0px) scale(1.5)";
           setTimeout(() => {
             starMsg.innerText = "止まった！！ (3等確)";
-            setTimeout(() => {
-              modal.style.display = 'none';
-              showResultModal();
-            }, 1000);
+            setTimeout(() => { modal.style.display = 'none'; showResultModal(); }, 1000);
           }, 1200);
         } else {
-          // 4等: そのまま左から右へ通り過ぎる
           starAnim.style.transform = "translateX(200px) scale(0.5)";
           setTimeout(() => {
             starAnim.style.opacity = "0";
             starMsg.innerText = "通り過ぎた...";
-            setTimeout(() => {
-              modal.style.display = 'none';
-              showResultModal();
-            }, 1000);
+            setTimeout(() => { modal.style.display = 'none'; showResultModal(); }, 1000);
           }, 1200);
         }
       }, 100);
     }
 
     function showResultModal() {
-      document.getElementById('resRank').innerText = `${currentWin.rank} 当選！`;
-      document.getElementById('resName').innerText = currentWin.name;
-      document.getElementById('coinVal').innerText = COIN_RETURNS[currentWin.rank] || 1;
+      const resRank = document.getElementById('resRank');
+      const resName = document.getElementById('resName');
+
+      if (currentResults.length === 1) {
+        resRank.innerText = `${currentResults[0].rank} 当選！`;
+        resName.innerText = currentResults[0].name;
+      } else {
+        resRank.innerText = `${currentResults.length}連ガチャ結果`;
+        
+        // 内訳を集計
+        let summary = {};
+        currentResults.forEach(r => {
+          summary[r.rank] = (summary[r.rank] || 0) + 1;
+        });
+
+        let summaryHtml = `<div style="margin-bottom:10px; color:var(--coin-gold)">【獲得内訳】<br>`;
+        for (let r in summary) {
+          summaryHtml += `${r}: ${summary[r]}枚 / `;
+        }
+        summaryHtml += `</div><hr style="border-color:#333; margin:8px 0;"><div style="font-size:0.85rem;">`;
+
+        summaryHtml += currentResults.map((item, idx) => `
+          <div style="margin-bottom:3px;">${idx+1}. <span style="color:var(--coin-gold);">${item.rank}</span>: ${item.name}</div>
+        `).join('');
+        summaryHtml += `</div>`;
+
+        resName.innerHTML = summaryHtml;
+      }
+
+      document.getElementById('coinVal').innerText = totalReturnCoin.toLocaleString();
       document.getElementById('actionBtns').style.display = 'flex';
       document.getElementById('shipForm').style.display = 'none';
       openModal('resultModal');
     }
 
     function convertCoin() {
-      const addCoins = COIN_RETURNS[currentWin.rank] || 1;
-      userCoins += addCoins;
-      history.push({ name: currentWin.name, rank: currentWin.rank, status: `${addCoins} COIN還元済` });
+      userCoins += totalReturnCoin;
+      currentResults.forEach(item => {
+        history.push({ name: item.name, rank: item.rank, status: `COIN還元済` });
+      });
       updateStorage();
-      alert(`${addCoins} COINに還元しました！`);
+      alert(`⚡ ${totalReturnCoin.toLocaleString()} COIN に還元しました！`);
       closeModal('resultModal');
     }
 
@@ -663,9 +700,11 @@
       const addr = document.getElementById('addressInput').value;
       if (!addr) { alert('住所を入力してください'); return; }
       savedAddress = addr;
-      history.push({ name: currentWin.name, rank: currentWin.rank, status: `発送受付済 (${addr})` });
+      currentResults.forEach(item => {
+        history.push({ name: item.name, rank: item.rank, status: `発送受付済 (${addr})` });
+      });
       updateStorage();
-      alert(`【発送受付完了】\n${currentWin.name}`);
+      alert(`【発送受付完了】\n獲得アイテムの発送受付を完了しました。`);
       closeModal('resultModal');
     }
 
@@ -676,7 +715,6 @@
       window.location.href = paypalUrl;
     }
 
-    // チャージコード動的判定 (12065533 + 任意の数)
     function redeemCode() {
       const code = document.getElementById('chargeCodeInput').value.trim();
       
@@ -713,7 +751,7 @@
       if (history.length === 0) {
         container.innerHTML = '<p style="color:var(--text-gray); text-align:center;">まだ獲得履歴がありません。</p>';
       } else {
-        container.innerHTML = history.map(item => `
+        container.innerHTML = history.slice().reverse().map(item => `
           <div style="border-bottom: 1px solid #333; padding: 8px 0;">
             <div style="color:var(--coin-gold); font-weight:bold;">${item.rank} - ${item.name}</div>
             <div style="font-size:0.75rem; color:var(--text-gray);">${item.status}</div>
@@ -730,6 +768,7 @@
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
+    // 初回起動
     loadData();
   </script>
 </body>
