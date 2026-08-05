@@ -12,6 +12,7 @@
       --coin-gold: #ffd700;
       --text-gray: #a0a0b0;
       --paypal-blue: #003087;
+      --emergency-blue: #0088ff;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -47,6 +48,23 @@
       padding: 0 15px;
       z-index: 10;
       border-bottom: 1px solid #252535;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .menu-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.4rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .logo {
@@ -86,6 +104,79 @@
       font-weight: bold;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
+    }
+
+    /* サイドメニュー（三本線） */
+    .sidebar {
+      position: fixed;
+      top: 0; left: -280px;
+      width: 280px; height: 100%;
+      background: #12121c;
+      border-right: 1px solid #252535;
+      z-index: 200;
+      transition: left 0.3s ease;
+      padding: 20px 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .sidebar.open { left: 0; }
+
+    .sidebar-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.6);
+      z-index: 199;
+      display: none;
+    }
+
+    .sidebar-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #fff;
+      border-bottom: 1px solid #252535;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+    }
+
+    .menu-item-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #3a3a4c;
+      background: #1a1a24;
+      color: #fff;
+      font-weight: bold;
+      font-size: 0.85rem;
+      text-align: left;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .menu-item-btn:hover { background: #252535; }
+
+    .menu-item-btn.btn-bug {
+      background: #2b1118;
+      border-color: #ff0055;
+      color: #ff88a5;
+    }
+
+    .menu-item-btn.btn-bug.active-blue {
+      background: #0d233a !important;
+      border-color: var(--emergency-blue) !important;
+      color: #88ccff !important;
+    }
+
+    /* 低電力・緊急モード通知バー */
+    .emergency-banner {
+      background: var(--emergency-blue);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: bold;
+      text-align: center;
+      padding: 6px;
+      display: none;
     }
 
     /* カテゴリタブ */
@@ -181,7 +272,6 @@
       background: linear-gradient(90deg, #00ff88, #00f3ff);
     }
 
-    /* ガチャボタンエリア */
     .gacha-btn-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -227,7 +317,7 @@
 
     .nav-item.active { color: var(--kaku-red); font-weight: bold; }
 
-    /* モーダル */
+    /* モーダル類 */
     .modal {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -270,14 +360,12 @@
     }
     .video-modal video { width: 100%; height: 100%; object-fit: contain; }
 
-    /* 星演出 */
     .star-stage {
       display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px;
     }
     .star-icon { font-size: 4rem; transition: transform 1.5s ease-out, opacity 0.5s; }
     .star-text { font-size: 1.5rem; font-weight: 900; color: var(--coin-gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
 
-    /* 結果モーダル */
     .result-rank { font-size: 1.5rem; font-weight: 900; color: var(--coin-gold); margin-bottom: 10px; }
     .result-item-name { font-size: 1.05rem; font-weight: bold; margin-bottom: 15px; max-height: 180px; overflow-y: auto; text-align: left; background: #0f0f15; padding: 10px; border-radius: 8px; }
 
@@ -308,15 +396,30 @@
 <body>
 
   <div class="app-container">
+    <!-- 低電力/緊急修正モード通知 -->
+    <div class="emergency-banner" id="emergencyBanner">⚡ 低電力通信・緊急修正モード稼働中</div>
+
     <!-- ヘッダー -->
     <header class="header">
-      <div class="logo">カクオリパ</div>
+      <div class="header-left">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="logo">カクオリパ</div>
+      </div>
       <div class="coin-status">
         <div class="coin-icon">⚡</div>
         <span id="userCoins">150</span>
         <button class="add-coin-btn" onclick="openModal('paypalModal')">＋</button>
       </div>
     </header>
+
+    <!-- サイドバー -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-title">システム・修復設定</div>
+      <button class="menu-item-btn" onclick="cleanCache()">🧹 キャッシュクリーン</button>
+      <button class="menu-item-btn btn-bug" id="bugFixBtn" onclick="handleBugFix()">🚨 バグが直りません。</button>
+      <button class="menu-item-btn" style="color:#ff5555; border-color:#552222;" onclick="purgeLocalCache()">⚠️ ローカルキャッシュを削除</button>
+    </div>
 
     <!-- カテゴリタブ -->
     <div class="category-bar">
@@ -394,7 +497,6 @@
         <button class="act-btn btn-paypal" onclick="redirectToPaypal('1000', '260')">¥260 で購入</button>
       </div>
 
-      <!-- チャージコード入力 -->
       <div class="code-section">
         <div class="code-title">チャージコードをお持ちの方:</div>
         <input type="password" class="form-input" id="chargeCodeInput" placeholder="••••••••••••" style="margin-bottom:8px;">
@@ -429,7 +531,6 @@
     const SECRET_KEY = '12065533';
 
     let isNewUser = localStorage.getItem('kaku_is_new') === null;
-
     let userCoins = parseInt(localStorage.getItem('kaku_coins')) || 150;
     let savedAddress = localStorage.getItem('kaku_address') || '';
     let history = JSON.parse(localStorage.getItem('kaku_history')) || [];
@@ -437,9 +538,107 @@
     let packs = [];
     let currentResults = [];
     let totalReturnCoin = 0;
-    let hasOnlyCoinItems = false; // 「コイン付与」景品のみかどうかのフラグ
+    let hasOnlyCoinItems = false;
+
+    // 低電力・修復状態フラグ
+    let isLowPowerMode = false;
+    let isEmergencyActive = false;
+    let emergencyTimer = null;
+    let syncInterval = 5000;
+    let syncTimerId = null;
 
     const DEFAULT_COIN_RETURNS = { '1等': 1600, '2等': 600, '3等': 10, '4等': 1 };
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      const isOpen = sidebar.classList.contains('open');
+      if (isOpen) {
+        sidebar.classList.remove('open');
+        overlay.style.display = 'none';
+      } else {
+        sidebar.classList.add('open');
+        overlay.style.display = 'block';
+      }
+    }
+
+    /* 三本線メニュー機能 1: ローカルキャッシュを削除（データ完全リセット） */
+    function purgeLocalCache() {
+      const confirm1 = confirm("【警告】ローカルキャッシュおよび保存データを完全に削除しますか？\n（獲得履歴やコイン残高がフォーマット初期化されます）");
+      if (!confirm1) return;
+
+      const confirm2 = confirm("本当に実行してよろしいですか？この操作は取り消せません。");
+      if (!confirm2) return;
+
+      localStorage.clear();
+      alert("データを完全フォーマットしました。再起動します。");
+      window.location.reload();
+    }
+
+    /* 三本線メニュー機能 2: キャッシュクリーン */
+    function cleanCache() {
+      toggleSidebar();
+      loadData();
+      alert("キャッシュを再クリーンアップし、最新データを読み込みました。");
+    }
+
+    /* 三本線メニュー機能 3: バグが直りません。（緊急修正＋低電力モード） */
+    function handleBugFix() {
+      const btn = document.getElementById('bugFixBtn');
+
+      if (isEmergencyActive) {
+        // 解除処理
+        isEmergencyActive = false;
+        isLowPowerMode = false;
+        btn.classList.remove('active-blue');
+        btn.innerText = "🚨 バグが直りません。";
+        document.getElementById('emergencyBanner').style.display = 'none';
+        
+        // 通常同期速度に戻す
+        clearInterval(syncTimerId);
+        syncInterval = 5000;
+        syncTimerId = setInterval(loadData, syncInterval);
+
+        alert("緊急修正・低電力モードを解除しました。通常モードへ復帰します。");
+        toggleSidebar();
+        return;
+      }
+
+      // 緊急修正モード 発動
+      isEmergencyActive = true;
+      isLowPowerMode = true;
+      btn.classList.add('active-blue');
+      btn.innerText = "⏳ 処理中... (10秒お待ちください)";
+      btn.disabled = true;
+
+      // 欠落データの補填 & キャッシュのクリーン
+      if (isNaN(userCoins)) userCoins = 150;
+      if (!Array.isArray(history)) history = [];
+      updateStorage();
+      loadData();
+
+      document.getElementById('emergencyBanner').style.display = 'block';
+
+      // 遅延実行（低電力化）
+      clearInterval(syncTimerId);
+      syncInterval = 15000; // 同期速度を低速化
+      syncTimerId = setInterval(loadData, syncInterval);
+
+      let countdown = 10;
+      emergencyTimer = setInterval(() => {
+        countdown--;
+        if (countdown > 0) {
+          btn.innerText = `⏳ 適用完了まで (${countdown}秒)`;
+        } else {
+          clearInterval(emergencyTimer);
+          btn.disabled = false;
+          btn.innerText = "🔵 緊急修正モード適正解除";
+          alert("緊急修正・補填完了。低電力モードで安定稼働を開始しました。解除する場合は青いボタンを押してください。");
+        }
+      }, 1000);
+
+      toggleSidebar();
+    }
 
     function updateStorage() {
       localStorage.setItem('kaku_coins', userCoins);
@@ -484,7 +683,7 @@
       }
     }
 
-    setInterval(loadData, 5000);
+    syncTimerId = setInterval(loadData, syncInterval);
 
     function renderPackList() {
       const container = document.getElementById('packList');
@@ -533,14 +732,10 @@
       return isNaN(num) ? 0 : num;
     }
 
-    // 商品名から数値（コイン数）を動的に抽出する関数
     function extractCoinAmount(itemName, rank) {
       if (!itemName) return DEFAULT_COIN_RETURNS[rank] || 0;
-      
-      // 商品名の末尾や中に含まれる数字（カンマ等を除去して半角化）を抽出
       const sanitized = String(itemName).replace(/,/g, '');
       const match = sanitized.match(/\d+/);
-      
       if (match) {
         return parseInt(match[0], 10);
       }
@@ -609,6 +804,12 @@
         });
 
         totalReturnCoin += coinAmount;
+      }
+
+      // 低電力モード時は長時間の演出処理をスキップして高速結果表示
+      if (isLowPowerMode) {
+        showResultModal();
+        return;
       }
 
       if (count === 1) {
@@ -682,7 +883,6 @@
       const btnShipItem = document.getElementById('btnShipItem');
       const btnConvertCoin = document.getElementById('btnConvertCoin');
 
-      // 全てのアイテムが「コイン付与（発送なし）」かどうかの判定
       hasOnlyCoinItems = currentResults.every(r => r.isCoinGrant);
 
       if (currentResults.length === 1) {
@@ -715,7 +915,6 @@
       document.getElementById('actionBtns').style.display = 'flex';
       document.getElementById('shipForm').style.display = 'none';
 
-      // 「コイン付与」景品のみの場合、発送ボタンを非表示にする
       if (hasOnlyCoinItems) {
         btnShipItem.style.display = 'none';
         btnConvertCoin.innerText = `コインを受け取る (⚡ ${totalReturnCoin.toLocaleString()} COIN)`;
