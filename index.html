@@ -256,6 +256,23 @@
       display: flex; justify-content: space-between; align-items: center;
       background: #252535; padding: 12px; border-radius: 8px; margin-bottom: 10px;
     }
+
+    /* 決済完了通知用スタイル */
+    .payment-status {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #00ff88;
+      margin-bottom: 15px;
+    }
+    .code-info {
+      background: #0f0f15;
+      padding: 10px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 0.9rem;
+      color: var(--coin-gold);
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
@@ -345,6 +362,14 @@
     </div>
   </div>
 
+  <!-- 決済処理モーダル -->
+  <div class="modal" id="paymentModal">
+    <div class="modal-box">
+      <div class="modal-title" id="payModalTitle">決済処理中... 1秒</div>
+      <div id="payModalContent"></div>
+    </div>
+  </div>
+
   <!-- 住所設定モーダル -->
   <div class="modal" id="addressModal">
     <div class="modal-box">
@@ -367,8 +392,8 @@
   <script>
     const SPREADSHEET_ID = '1CaHgKm-ti-JVyW79mK8wXT21TqjTrIEz6_YYbtrn-5U';
     const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
+    const PAYPAL_RECEIVER = 'sixyami1206@gmail.com';
 
-    // 1. ローカルストレージからの初期設定（初回は150 COIN付与）
     let userCoins = parseInt(localStorage.getItem('kaku_coins')) || 150;
     let savedAddress = localStorage.getItem('kaku_address') || '';
     let history = JSON.parse(localStorage.getItem('kaku_history')) || [];
@@ -389,6 +414,12 @@
       updateStorage();
       if (savedAddress) {
         document.getElementById('defaultAddress').value = savedAddress;
+      }
+
+      // URLパラメータのチェック（決済完了時の復帰判定）
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('payment') === 'success') {
+        executePaymentSuccessSequence();
       }
 
       try {
@@ -527,11 +558,39 @@
       closeModal('resultModal');
     }
 
-    // 2. PayPal公式の決済画面へ自動で100%移動する処理
+    // 指定のPayPal宛先への遷移（現在ページのURLを戻り先として指定）
     function redirectToPaypal(coinAmount, priceYen) {
-      alert(`PayPal決済画面へ自動移動します。\n購入枠: ${coinAmount} COIN (¥${priceYen})`);
-      // PayPalの公式トップページ（あるいは準備したMeリンクや決済URL）へリダイレクト
-      window.location.href = `https://www.paypal.com/`;
+      closeModal('paypalModal');
+      const currentUrl = encodeURIComponent(window.location.origin + window.location.pathname + '?payment=success');
+      // 送金先アカウント(sixyami1206@gmail.com)へのPayPal決済URL構築
+      const paypalUrl = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(PAYPAL_RECEIVER)}&item_name=${coinAmount}COIN_Charge&amount=${priceYen}&currency_code=JPY&return=${currentUrl}`;
+      
+      // テスト・デモ用に即時決済シミュレーションを行う場合は以下を有効化できます
+      window.location.href = paypalUrl;
+    }
+
+    // 決済完了時のシーケンスアニメーション
+    function executePaymentSuccessSequence() {
+      // クエリ文字をURLから除去
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      openModal('paymentModal');
+      const title = document.getElementById('payModalTitle');
+      const content = document.getElementById('payModalContent');
+      
+      title.innerText = "支払い処理中... 1秒";
+      content.innerHTML = "";
+
+      setTimeout(() => {
+        title.innerText = "支払い完了！";
+        content.innerHTML = `
+          <div class="code-info">コードチャージ 120655331234</div>
+          <div class="payment-status">⚡ 5000 COIN 獲得！</div>
+          <button class="act-btn btn-ship" style="width:100%" onclick="closeModal('paymentModal')">閉じる</button>
+        `;
+        userCoins += 5000;
+        updateStorage();
+      }, 1000);
     }
 
     function saveAddress() {
