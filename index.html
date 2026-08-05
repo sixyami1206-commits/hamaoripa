@@ -1,404 +1,452 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>オンラインオリパ</title>
-<style>
-  :root {
-    --bg-color: #121212;
-    --card-bg: #1e1e24;
-    --accent-gold: #ffd700;
-    --accent-pink: #ff2a6d;
-    --text-color: #ffffff;
-  }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOPA風 オリパアプリ</title>
+  <style>
+    :root {
+      --dopa-red: #e6002d;
+      --dopa-bg: #121212;
+      --card-bg: #1e1e1e;
+      --coin-gold: #ffcb05;
+      --text-gray: #aaaaaa;
+    }
 
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    display: flex;
-    justify-content: center;
-  }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 
-  .app-container {
-    width: 100%;
-    max-width: 480px;
-    min-height: 100vh;
-    background-color: #000;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    padding-bottom: 80px;
-  }
+    body {
+      background-color: var(--dopa-bg);
+      color: #fff;
+      padding-top: 60px;
+      padding-bottom: 70px;
+      display: flex;
+      justify-content: center;
+    }
 
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    background-color: #111;
-    border-bottom: 1px solid #222;
-  }
-  .logo {
-    font-size: 20px;
-    font-weight: 900;
-    color: var(--accent-pink);
-    letter-spacing: 1px;
-  }
-  .coin-status {
-    display: flex;
-    align-items: center;
-    background: #222;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-weight: bold;
-    color: var(--accent-gold);
-    font-size: 14px;
-  }
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background: var(--dopa-bg);
+      position: relative;
+    }
 
-  .oripa-card {
-    margin: 12px;
-    background: linear-gradient(135deg, #2a085c, #15002b);
-    border: 2px solid var(--accent-gold);
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
-  }
-  .oripa-banner {
-    position: relative;
-    width: 100%;
-    padding: 24px 0;
-    background: radial-gradient(circle, #ff0055 0%, #4a0028 100%);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-  }
-  .badge-return {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    background: #e60000;
-    color: #fff;
-    font-weight: bold;
-    font-size: 11px;
-    padding: 3px 6px;
-    border-radius: 4px;
-    border: 1px solid #fff;
-  }
-  .oripa-title {
-    font-size: 22px;
-    font-weight: 900;
-    color: var(--accent-gold);
-    text-shadow: 0 0 8px rgba(0,0,0,0.8);
-    margin: 0;
-  }
-  .oripa-sub {
-    font-size: 12px;
-    color: #fff;
-    margin-top: 4px;
-  }
+    /* 上部ヘッダー */
+    .header {
+      position: fixed;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      height: 60px;
+      background: #181818;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      z-index: 10;
+      border-bottom: 1px solid #2a2a2a;
+    }
 
-  .oripa-info {
-    padding: 12px;
-  }
-  .progress-bar-bg {
-    background: #333;
-    height: 10px;
-    border-radius: 5px;
-    overflow: hidden;
-    margin-bottom: 6px;
-  }
-  .progress-bar-fill {
-    background: linear-gradient(90deg, #00ff88, #00b8ff);
-    height: 100%;
-    width: 100%;
-    transition: width 0.3s ease;
-  }
-  .stock-text {
-    font-size: 12px;
-    color: #aaa;
-    text-align: right;
-    margin-bottom: 12px;
-  }
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--dopa-red);
+      letter-spacing: -1px;
+    }
 
-  .btn-group {
-    display: flex;
-    gap: 8px;
-  }
-  .btn-gacha {
-    flex: 1;
-    background: linear-gradient(180deg, #ffd700, #ff8800);
-    border: none;
-    border-radius: 8px;
-    padding: 12px 0;
-    font-weight: bold;
-    font-size: 15px;
-    color: #000;
-    cursor: pointer;
-    box-shadow: 0 4px 0 #b36b00;
-  }
-  .btn-gacha:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+    .coin-status {
+      display: flex;
+      align-items: center;
+      background: #2a2a2a;
+      padding: 4px 12px;
+      border-radius: 20px;
+      gap: 6px;
+      font-weight: bold;
+    }
 
-  #loading-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.8);
-    color: var(--accent-gold);
-    font-weight: bold;
-    font-size: 16px;
-    z-index: 1000;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-  }
+    .coin-icon {
+      width: 20px; height: 20px;
+      background: var(--coin-gold);
+      border-radius: 50%;
+      color: #000;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 900;
+    }
 
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 999;
-    justify-content: center;
-    align-items: center;
-    padding: 16px;
-  }
-  .modal-content {
-    background: #1e1e24;
-    border: 2px solid var(--accent-gold);
-    border-radius: 12px;
-    width: 100%;
-    max-width: 440px;
-    padding: 16px;
-    max-height: 80vh;
-    overflow-y: auto;
-    text-align: center;
-  }
-  .result-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-top: 16px;
-  }
-  .result-card {
-    background: #2a2a35;
-    border: 1px solid #444;
-    border-radius: 8px;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  .result-card.rank-3 {
-    border: 2px solid #00d2ff;
-    background: linear-gradient(135deg, #102a43, #243b53);
-  }
-  .result-card.rank-1 { border: 2px solid #ffd700; background: linear-gradient(135deg, #4a3b00, #2a0000); }
-  .result-card.rank-2 { border: 2px solid #ff00ff; background: linear-gradient(135deg, #3b004a, #1a002a); }
+    /* カテゴリタブ */
+    .category-bar {
+      display: flex;
+      background: #181818;
+      border-bottom: 1px solid #2a2a2a;
+      overflow-x: auto;
+    }
 
-  .badge {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-bottom: 6px;
-    font-weight: bold;
-    color: #fff;
-    background: #555;
-  }
-  .rank-1 .badge { background: #ffd700; color: #000; }
-  .rank-2 .badge { background: #ff00ff; color: #fff; }
-  .rank-3 .badge { background: #00d2ff; color: #000; }
+    .tab {
+      padding: 12px 18px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: var(--text-gray);
+      white-space: nowrap;
+      cursor: pointer;
+    }
 
-  .card-name { font-size: 12px; font-weight: bold; }
-  .card-value { font-size: 11px; color: var(--accent-gold); margin-top: 4px; }
+    .tab.active {
+      color: #fff;
+      border-bottom: 3px solid var(--dopa-red);
+    }
 
-  .close-btn {
-    margin-top: 16px;
-    width: 100%;
-    padding: 12px;
-    background: #444;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-</style>
+    /* 一覧表示カード */
+    .pack-list {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .pack-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      cursor: pointer;
+    }
+
+    .pack-banner {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .pack-info {
+      padding: 12px;
+    }
+
+    .pack-title {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .price {
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--coin-gold);
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .stock-text {
+      font-size: 0.8rem;
+      color: var(--text-gray);
+    }
+
+    /* メーターバー */
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #333;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #00ff88, #00f3ff);
+    }
+
+    /* 動画再生モーダル */
+    .video-modal {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #000;
+      z-index: 100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .video-modal video { width: 100%; height: 100%; object-fit: contain; }
+
+    /* ガチャ結果＆選択モーダル */
+    .result-modal {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(5px);
+      z-index: 101;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .result-box {
+      width: 100%; max-width: 360px;
+      background: #222;
+      border: 2px solid var(--dopa-red);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .result-rank { font-size: 1.6rem; font-weight: 900; color: var(--coin-gold); margin-bottom: 10px; }
+    .result-item-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 20px; }
+
+    .action-btns { display: flex; flex-direction: column; gap: 10px; }
+    .act-btn {
+      padding: 12px;
+      border: none;
+      border-radius: 25px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .btn-coin { background: var(--coin-gold); color: #000; }
+    .btn-ship { background: var(--dopa-red); color: #fff; }
+
+    /* 発送住所フォーム */
+    .ship-form { display: none; text-align: left; margin-top: 15px; }
+    .ship-form input {
+      width: 100%; padding: 8px; margin: 5px 0 10px;
+      border-radius: 6px; border: 1px solid #444; background: #111; color: #fff;
+    }
+
+    /* 下部ナビゲーション */
+    .footer-nav {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      height: 60px;
+      background: #181818;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid #2a2a2a;
+    }
+
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      font-size: 0.7rem; color: var(--text-gray);
+    }
+    .nav-item.active { color: var(--dopa-red); }
+  </style>
 </head>
 <body>
 
-<div class="app-container">
-  <div class="header">
-    <div class="logo">ORIPA</div>
-    <div class="coin-status">🪙 <span id="user-coins">---</span> COIN</div>
-  </div>
+  <div class="app-container">
+    <!-- ヘッダー -->
+    <header class="header">
+      <div class="logo">DOPA!</div>
+      <div class="coin-status">
+        <div class="coin-icon">⚡</div>
+        <span id="userCoins">10,000</span>
+      </div>
+    </header>
 
-  <div class="oripa-card">
-    <div class="oripa-banner">
-      <div class="badge-return">総還元率 101%</div>
-      <h2 class="oripa-title">チャレンジオリパ</h2>
-      <div class="oripa-sub">※3等はコイン変換専用カード！</div>
+    <!-- カテゴリタブ -->
+    <div class="category-bar">
+      <div class="tab active">ポケモン</div>
+      <div class="tab">ワンピース</div>
+      <div class="tab">遊戯王</div>
     </div>
 
-    <div class="oripa-info">
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="stock-bar"></div>
-      </div>
-      <div class="stock-text">残り <span id="stock-count">---</span> / <span id="stock-max">50000</span> 口</div>
+    <!-- パック一覧 -->
+    <div class="pack-list" id="packList">
+      <!-- JSでカード動的描画 -->
+    </div>
 
-      <div class="btn-group">
-        <button class="btn-gacha" id="btn-1" onclick="playGacha(1)">1回 (50 COIN)</button>
-        <button class="btn-gacha" id="btn-10" onclick="playGacha(10)">10連 (500 COIN)</button>
+    <!-- 下部ナビ -->
+    <nav class="footer-nav">
+      <div class="nav-item active">オリパ一覧</div>
+      <div class="nav-item">速報</div>
+      <div class="nav-item">ランキング</div>
+      <div class="nav-item">獲得履歴</div>
+      <div class="nav-item">マイページ</div>
+    </nav>
+  </div>
+
+  <!-- 動画演出モーダル -->
+  <div class="video-modal" id="videoModal">
+    <video id="gachaVideo" playsinline></video>
+  </div>
+
+  <!-- 結果＆還元/発送モーダル -->
+  <div class="result-modal" id="resultModal">
+    <div class="result-box">
+      <div class="result-rank" id="resRank">1等獲得！</div>
+      <div class="result-item-name" id="resName">カード名</div>
+
+      <div class="action-btns" id="actionBtns">
+        <button class="act-btn btn-coin" onclick="convertCoin()">コインに変換 (<span id="coinVal">0</span> COIN)</button>
+        <button class="act-btn btn-ship" onclick="showShipForm()">自宅に発送する</button>
+      </div>
+
+      <!-- 住所入力フォーム -->
+      <div class="ship-form" id="shipForm">
+        <label style="font-size:0.8rem">お届け先住所:</label>
+        <input type="text" id="addressInput" placeholder="東京都渋谷区...">
+        <button class="act-btn btn-ship" style="width:100%" onclick="submitShip()">発送を確定する</button>
       </div>
     </div>
   </div>
-</div>
 
-<div id="loading-overlay">
-  <div>スプレッドシート処理中...</div>
-</div>
+  <script>
+    const SPREADSHEET_ID = '1CaHgKm-ti-JVyW79mK8wXT21TqjTrIEz6_YYbtrn-5U';
+    const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
 
-<div class="modal-overlay" id="result-modal">
-  <div class="modal-content">
-    <h3 style="margin:0; color:var(--accent-gold);">ガチャ獲得結果</h3>
-    <p style="font-size:12px; color:#ccc; margin:4px 0 0 0;" id="modal-subtitle"></p>
-    <div class="result-grid" id="result-grid"></div>
-    <button class="close-btn" onclick="closeModal()">結果を確定して閉じる</button>
-  </div>
-</div>
+    let userCoins = 10000;
+    let packs = [];
+    let currentWin = null;
 
-<script>
-  // 指定されたGASエンドポイントURL
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbxmG-ceRxiDCdfdLpXd-eZ9LGkw3Txfi-_OfcQGI--xo21qGELNVT9PLNJXDReP_7O1/exec";
+    // 還元コインマッピング
+    const COIN_RETURNS = {
+      '1等': 1600,
+      '2等': 600,
+      '3等': 10,
+      '4等': 1
+    };
 
-  const KEY_COINS = 'oripa_user_coins';
-  const KEY_STOCK = 'oripa_stock_count';
-  const MAX_STOCK = 50000;
-
-  let userCoins = 10000;
-  let stockCount = MAX_STOCK;
-
-  window.onload = function() {
-    loadLocalStorage();
-    updateUI();
-  };
-
-  function loadLocalStorage() {
-    const savedCoins = localStorage.getItem(KEY_COINS);
-    const savedStock = localStorage.getItem(KEY_STOCK);
-    if (savedCoins !== null) userCoins = parseInt(savedCoins, 10);
-    if (savedStock !== null) stockCount = parseInt(savedStock, 10);
-  }
-
-  function saveLocalStorage(coins, stock) {
-    userCoins = coins;
-    stockCount = stock;
-    localStorage.setItem(KEY_COINS, coins);
-    localStorage.setItem(KEY_STOCK, stock);
-    updateUI();
-  }
-
-  function updateUI() {
-    document.getElementById('user-coins').innerText = userCoins.toLocaleString();
-    document.getElementById('stock-count').innerText = stockCount.toLocaleString();
-    document.getElementById('stock-max').innerText = MAX_STOCK.toLocaleString();
-    const percentage = (stockCount / MAX_STOCK) * 100;
-    document.getElementById('stock-bar').style.width = percentage + '%';
-  }
-
-  async function playGacha(count) {
-    const cost = count * 50;
-    if (userCoins < cost) {
-      alert("コインが足りません！");
-      return;
-    }
-    if (stockCount < count) {
-      alert("残り口数が足りません！");
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await fetch(GAS_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({
-          action: 'playGacha',
-          count: count
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.error === 'INSUFFICIENT_COINS') {
-        alert("コインが足りません！");
-        return;
-      }
-      if (data.error === 'OUT_OF_STOCK') {
-        alert("在庫が切れています！");
-        return;
-      }
-
-      if (data.success) {
-        // スプレッドシート側の最新値をローカルストレージと表示に反映
-        saveLocalStorage(data.newCoins, data.remainingStock);
+    async function loadData() {
+      try {
+        const res = await fetch(GVIZ_URL);
+        const txt = await res.text();
+        const json = JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
+        const cols = json.table.cols.map(c => c ? c.label : '');
         
-        // 排出結果を表示
-        showResults(count, data.results);
-      } else {
-        alert("ガチャ処理に失敗しました。");
+        packs = json.table.rows.map(r => {
+          let item = {};
+          r.c.forEach((cell, i) => { if (cols[i]) item[cols[i]] = cell ? cell.v : ''; });
+          return item;
+        }).filter(item => item['名前']);
+
+        renderPackList();
+      } catch (e) {
+        console.error(e);
       }
-    } catch (err) {
-      console.error("通信エラー:", err);
-      alert("通信エラーが発生しました。GAS側のアクセス権限設定をご確認ください。");
-    } finally {
-      setLoading(false);
     }
-  }
 
-  function setLoading(isLoading) {
-    document.getElementById('loading-overlay').style.display = isLoading ? 'flex' : 'none';
-    document.getElementById('btn-1').disabled = isLoading;
-    document.getElementById('btn-10').disabled = isLoading;
-  }
+    function renderPackList() {
+      const container = document.getElementById('packList');
+      container.innerHTML = '';
 
-  function showResults(count, results) {
-    const grid = document.getElementById('result-grid');
-    grid.innerHTML = '';
-    document.getElementById('modal-subtitle').innerText = `${count}回引きました（獲得カード: ${count}枚）`;
+      packs.forEach((p, idx) => {
+        const cost = p['必要COIN'] || 0;
+        const stock = p['在庫数'] || 100;
+        const maxStock = 50000; // 仮の総在庫基準
+        const percent = Math.min(100, (stock / maxStock) * 100);
 
-    results.forEach((item) => {
-      let cls = 'rank-miss';
-      if (item.rank === '1等') cls = 'rank-1';
-      else if (item.rank === '2等') cls = 'rank-2';
-      else if (item.rank === '3等') cls = 'rank-3';
+        const card = document.createElement('div');
+        card.className = 'pack-card';
+        card.onclick = () => drawGacha(idx);
+        card.innerHTML = `
+          <img class="pack-banner" src="${p['サムネURL'] || ''}" alt="パック">
+          <div class="pack-info">
+            <div class="pack-title">${p['名前']}</div>
+            <div class="price-row">
+              <div class="price">⚡ ${Number(cost).toLocaleString()} /1回</div>
+              <div class="stock-text">残り ${Number(stock).toLocaleString()}口</div>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${percent}%"></div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
 
-      const cardDiv = document.createElement('div');
-      cardDiv.className = `result-card ${cls}`;
-      cardDiv.innerHTML = `
-        <div class="badge">${item.rank}</div>
-        <div class="card-name">${item.name}</div>
-        <div class="card-value">${item.val}</div>
-      `;
-      grid.appendChild(cardDiv);
-    });
+    function drawGacha(idx) {
+      const p = packs[idx];
+      const cost = parseInt(p['必要COIN'] || 0);
 
-    document.getElementById('result-modal').style.display = 'flex';
-  }
+      if (userCoins < cost) {
+        alert('コインが不足しています！');
+        return;
+      }
 
-  function closeModal() {
-    document.getElementById('result-modal').style.display = 'none';
-  }
-</script>
+      // コイン消費
+      userCoins -= cost;
+      document.getElementById('userCoins').innerText = userCoins.toLocaleString();
+
+      // 確率判定
+      const p1 = parseFloat(p['1等確率'] || 0);
+      const p2 = parseFloat(p['2等確率'] || 0);
+      const p3 = parseFloat(p['3等確率'] || 0);
+      const rand = Math.random() * 100;
+
+      let rank = '4等';
+      let name = p['4等'] || 'ノーマルカード';
+      let isSuperWin = false;
+
+      if (rand < p1) {
+        rank = '1等'; name = p['一等']; isSuperWin = true;
+      } else if (rand < (p1 + p2)) {
+        rank = '2等'; name = p['2等']; isSuperWin = true;
+      } else if (rand < (p1 + p2 + p3)) {
+        rank = '3等'; name = p['3等'];
+      }
+
+      currentWin = { rank, name };
+
+      // 動画再生
+      const videoUrl = isSuperWin ? (p['確定演出動画'] || p['動画URL']) : p['動画URL'];
+      if (videoUrl) {
+        const modal = document.getElementById('videoModal');
+        const video = document.getElementById('gachaVideo');
+        video.src = videoUrl;
+        modal.style.display = 'flex';
+        video.play();
+        video.onended = () => {
+          modal.style.display = 'none';
+          showResultModal();
+        };
+      } else {
+        showResultModal();
+      }
+    }
+
+    function showResultModal() {
+      document.getElementById('resRank').innerText = `${currentWin.rank} 当選！`;
+      document.getElementById('resName').innerText = currentWin.name;
+      
+      const returnCoins = COIN_RETURNS[currentWin.rank] || 1;
+      document.getElementById('coinVal').innerText = returnCoins;
+
+      document.getElementById('actionBtns').style.display = 'flex';
+      document.getElementById('shipForm').style.display = 'none';
+      document.getElementById('resultModal').style.display = 'flex';
+    }
+
+    function convertCoin() {
+      const addCoins = COIN_RETURNS[currentWin.rank] || 1;
+      userCoins += addCoins;
+      document.getElementById('userCoins').innerText = userCoins.toLocaleString();
+      alert(`${addCoins} COINに還元しました！`);
+      document.getElementById('resultModal').style.display = 'none';
+    }
+
+    function showShipForm() {
+      document.getElementById('actionBtns').style.display = 'none';
+      document.getElementById('shipForm').style.display = 'block';
+    }
+
+    function submitShip() {
+      const addr = document.getElementById('addressInput').value;
+      if (!addr) { alert('住所を入力してください'); return; }
+      alert(`【発送受付完了】\n${currentWin.name}\nお届け先: ${addr}`);
+      document.getElementById('resultModal').style.display = 'none';
+    }
+
+    loadData();
+  </script>
 </body>
 </html>
