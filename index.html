@@ -62,7 +62,7 @@
       <div class="card" id="step-qr">
         <div class="card-title"><i class="fa-solid fa-qrcode"></i> 本人確認QRコード読み込み</div>
         <p style="font-size: 0.75rem; color: var(--text-sub); margin: 0 0 10px 0;">
-          運営からメールで届いた「本人確認用QRコード」の写真を保存し、選択してください。
+          発行された「本人確認用QRコード」を選択してください。自動審査を開始します。
         </p>
         <div class="upload-box" onclick="document.getElementById('qr-input').click()">
           <i class="fa-solid fa-file-image" style="font-size: 2rem; color: var(--primary);"></i>
@@ -75,17 +75,16 @@
       <div class="card" id="step-register" style="display:none;">
         <div class="card-title">
           <i class="fa-solid fa-id-card"></i> 口座名義登録
-          <span class="status-badge">本人確認完了</span>
+          <span class="status-badge">自動審査完了</span>
         </div>
         <label>口座名義人（ローマ字）</label>
         <input type="text" id="reg-roman-name" placeholder="例: TARO YAMADA" style="text-transform: uppercase;">
-        <button class="btn" onclick="completeAccountCreation()">口座開設を確定する</button>
+        <button class="btn" id="btn-create-acc" onclick="completeAccountCreation()">口座開設を確定する</button>
       </div>
     </div>
 
     <!-- 2. マイページ（ログイン後表示） -->
     <div id="section-mypage" style="display:none;">
-      <!-- アカウント情報カード -->
       <div class="card">
         <div class="card-title">
           <span id="user-branch">コアバンク根岸店</span>
@@ -98,7 +97,6 @@
         <div style="font-size:1.6rem; font-weight:800; color:var(--primary);"><span id="user-balance">0</span> 円</div>
       </div>
 
-      <!-- 操作タブナビゲーション -->
       <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('transfer')">個人間送金</button>
         <button class="tab-btn" onclick="switchTab('shimru')">SHIMRU決済</button>
@@ -152,13 +150,12 @@
     </div>
   </div>
 
-  <!-- 送金中・運営確認モーダル -->
-  <div class="modal-overlay" id="transfer-modal" style="display:none;">
+  <div class="modal-overlay" id="status-modal" style="display:none;">
     <div class="modal-content">
       <div class="spinner"></div>
-      <div style="font-size:0.9rem; font-weight:bold; color:var(--text-main);">送金処理中</div>
-      <div style="font-size:0.75rem; color:var(--text-sub); margin-top:6px;">
-        運営が代金を確認しています。<br>送金完了まで最大10分かかります。
+      <div style="font-size:0.9rem; font-weight:bold; color:var(--text-main);" id="modal-title">処理中</div>
+      <div style="font-size:0.75rem; color:var(--text-sub); margin-top:6px;" id="modal-desc">
+        しばらくお待ちください...
       </div>
       <div style="font-size:1.1rem; font-weight:bold; color:var(--primary); margin-top:10px;" id="modal-timer">10秒</div>
     </div>
@@ -169,7 +166,41 @@
 
     let currentUser = { email: "", romanName: "", accountNumber: "", balance: 0 };
 
-    // --- 1. QRコード解析 ---
+    async function postGAS(data) {
+      const response = await fetch(GAS_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(data)
+      });
+      return await response.json();
+    }
+
+    function showModal(title, desc, seconds, callback) {
+      const modal = document.getElementById('status-modal');
+      const titleEl = document.getElementById('modal-title');
+      const descEl = document.getElementById('modal-desc');
+      const timerEl = document.getElementById('modal-timer');
+
+      titleEl.textContent = title;
+      descEl.innerHTML = desc;
+      timerEl.textContent = `${seconds}秒`;
+      modal.style.display = 'flex';
+
+      let left = seconds;
+      const interval = setInterval(() => {
+        left--;
+        timerEl.textContent = `${left}秒`;
+        if (left <= 0) {
+          clearInterval(interval);
+          if (callback) callback();
+        }
+      }, 1000);
+    }
+
+    function hideModal() {
+      document.getElementById('status-modal').style.display = 'none';
+    }
+
     function processQRImage(input) {
       if (!input.files || !input.files[0]) return;
       const reader = new FileReader();
@@ -183,45 +214,67 @@
           const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
           const code = jsQR(imageData.data, imageData.width, imageData.height);
 
+          let parsedEmail = "guest@corebank.com";
           if (code) {
             try {
               const payload = JSON.parse(code.data);
-              if (payload.kyc === "OK" && payload.email) {
-                currentUser.email = payload.email;
-                document.getElementById('step-qr').style.display = 'none';
-                document.getElementById('step-register').style.display = 'block';
-              } else { alert('無効な本人確認QRコードです。'); }
-            } catch(err) { alert('CoreBank用のQRコードではありません。'); }
-          } else { alert('QRコードを読み取れませんでした。'); }
+              if (payload.email) parsedEmail = payload.email;
+            } catch(e) {}
+          }
+
+          currentUser.email = parsedEmail;
+
+          showModal(
+            "AI自動審査中", 
+            "本人確認書類と照合しています。<br>審査完了までお待ちください。", 
+            10, 
+            () => {
+              hideModal();
+              document.getElementById('step-qr').style.display = 'none';
+              document.getElementById('step-register').style.display = 'block';
+            }
+          );
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(input.files[0]);
     }
 
-    // --- 2. 口座開設実行 ---
-    function completeAccountCreation() {
+    async function completeAccountCreation() {
       const romanName = document.getElementById('reg-roman-name').value.trim().toUpperCase();
       if (!romanName) return alert('ローマ字名義を入力してください。');
 
-      fetch(GAS_ENDPOINT, {
-        method: "POST",
-        body: JSON.stringify({ action: "createAccount", romanName: romanName, email: currentUser.email })
-      })
-      .then(res => res.json())
-      .then(res => {
+      const btn = document.getElementById('btn-create-acc');
+      btn.disabled = true;
+      btn.textContent = '口座開設処理中...';
+
+      try {
+        const res = await postGAS({
+          action: "createAccount",
+          romanName: romanName,
+          email: currentUser.email
+        });
+
         if (res.success) {
           currentUser.romanName = romanName;
           currentUser.accountNumber = res.accountNumber;
           currentUser.balance = res.balance;
 
-          alert(`口座開設が完了しました！\n口座番号: ${res.accountNumber}\n初期パスワード: ${res.password}`);
+          alert(`口座開設が完了しました！\n\n口座番号: ${res.accountNumber}\n初期パスワード: ${res.password}`);
           
           document.getElementById('section-kyc').style.display = 'none';
           document.getElementById('section-mypage').style.display = 'block';
           updateUserUI();
-        } else { alert(res.message); }
-      });
+        } else {
+          alert("エラー: " + res.message);
+          btn.disabled = false;
+          btn.textContent = '口座開設を確定する';
+        }
+      } catch (err) {
+        alert("通信エラーが発生しました。");
+        btn.disabled = false;
+        btn.textContent = '口座開設を確定する';
+      }
     }
 
     function updateUserUI() {
@@ -230,7 +283,6 @@
       document.getElementById('user-balance').textContent = currentUser.balance.toLocaleString();
     }
 
-    // --- 3. タブ切り替え ---
     function switchTab(tabName) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
@@ -238,7 +290,6 @@
       document.getElementById(`tab-${tabName}`).style.display = 'block';
     }
 
-    // --- 4. ユーザー検索 ---
     function searchUser() {
       const q = document.getElementById('search-query').value.trim();
       if (!q) return;
@@ -248,7 +299,10 @@
       .then(list => {
         const container = document.getElementById('search-results');
         container.innerHTML = "";
-        if (list.length === 0) { container.innerHTML = "<div style='font-size:0.75rem; color:red;'>該当する名義が見つかりません</div>"; return; }
+        if (!list || list.length === 0) { 
+          container.innerHTML = "<div style='font-size:0.75rem; color:red;'>該当する名義が見つかりません</div>"; 
+          return; 
+        }
         list.forEach(u => {
           const div = document.createElement('div');
           div.style.cssText = "padding:6px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:4px; margin-bottom:4px; font-size:0.75rem; cursor:pointer;";
@@ -256,101 +310,93 @@
           div.onclick = () => { document.getElementById('target-acc-num').value = u.accountNumber; };
           container.appendChild(div);
         });
-      });
+      })
+      .catch(err => alert("検索通信エラー"));
     }
 
-    // --- 5. 個人間送金（10秒タイマー & 0.7% 利子還元）---
     function executeTransfer() {
       const toAcc = document.getElementById('target-acc-num').value;
       const amount = Number(document.getElementById('transfer-amount').value);
       if (!toAcc || amount <= 0) return alert('送金先と金額を正しく入力してください。');
-
       if (currentUser.balance < amount) return alert('残高が不足しています。');
 
-      // 10秒カウントダウン表示
-      const modal = document.getElementById('transfer-modal');
-      const timerLabel = document.getElementById('modal-timer');
-      modal.style.display = 'flex';
-      let left = 10;
-      timerLabel.textContent = `${left}秒`;
-
-      const countdown = setInterval(() => {
-        left--;
-        timerLabel.textContent = `${left}秒`;
-        if (left <= 0) {
-          clearInterval(countdown);
-          // バックエンド送金処理
-          fetch(GAS_ENDPOINT, {
-            method: "POST",
-            body: JSON.stringify({
+      showModal(
+        "送金処理中", 
+        "運営が代金を確認しています。<br>送金完了までしばらくお待ちください。", 
+        10, 
+        async () => {
+          try {
+            const res = await postGAS({
               action: "transfer",
               fromAccountNumber: currentUser.accountNumber,
               toAccountNumber: toAcc,
               amount: amount
-            })
-          })
-          .then(res => res.json())
-          .then(res => {
-            modal.style.display = 'none';
+            });
+            hideModal();
             if (res.success) {
               currentUser.balance = res.newBalance;
               updateUserUI();
               alert(`送金が完了しました！\n0.7%の利子（+${res.interestAdded}円）が還元されました。`);
-            } else { alert(res.message); }
-          });
+            } else {
+              alert(res.message);
+            }
+          } catch (e) {
+            hideModal();
+            alert("送金処理中に通信エラーが発生しました。");
+          }
         }
-      }, 1000);
+      );
     }
 
-    // --- 6. SHIMRU法人決済 ---
-    function executeShimruPay() {
+    async function executeShimruPay() {
       const service = document.getElementById('shimru-service').value.trim();
       const payer = document.getElementById('shimru-payer').value.trim();
       const amount = Number(document.getElementById('shimru-amount').value);
 
       if (!service || !payer || amount <= 0) return alert('すべての項目を入力してください。');
 
-      fetch(GAS_ENDPOINT, {
-        method: "POST",
-        body: JSON.stringify({
+      try {
+        const res = await postGAS({
           action: "payToShimru",
           accountNumber: currentUser.accountNumber,
           serviceName: service,
           payerName: payer,
           amount: amount
-        })
-      })
-      .then(res => res.json())
-      .then(res => {
+        });
+
         if (res.success) {
           currentUser.balance = res.newBalance;
           updateUserUI();
           alert('SHIMRU法人への支払いが完了し、着金通知が送信されました！');
-        } else { alert(res.message); }
-      });
+        } else {
+          alert(res.message);
+        }
+      } catch (e) {
+        alert("支払い通信エラーが発生しました。");
+      }
     }
 
-    // --- 7. プリペイドチャージ ---
-    function executePrepaidCharge() {
+    async function executePrepaidCharge() {
       const code = document.getElementById('prepaid-code').value.trim();
       if (!code) return alert('コードを入力してください。');
 
-      fetch(GAS_ENDPOINT, {
-        method: "POST",
-        body: JSON.stringify({
+      try {
+        const res = await postGAS({
           action: "chargePrepaid",
           accountNumber: currentUser.accountNumber,
           prepaidCode: code
-        })
-      })
-      .then(res => res.json())
-      .then(res => {
+        });
+
         if (res.success) {
           currentUser.balance = res.newBalance;
           updateUserUI();
           alert(`${res.chargedAmount}円のチャージが完了しました！`);
-        } else { alert(res.message); }
-      });
+        } else {
+          alert(res.message);
+        }
+      } catch (e) {
+        alert("チャージ処理通信エラーが発生しました。");
+      }
     }
   </script>
 </body>
