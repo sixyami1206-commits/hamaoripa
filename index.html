@@ -2,1030 +2,356 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>カクオリパ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CoreBank - ネオバンク</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     :root {
-      --kaku-red: #ff0055;
-      --kaku-bg: #0d0d12;
-      --card-bg: #1a1a24;
-      --coin-gold: #ffd700;
-      --text-gray: #a0a0b0;
-      --paypal-blue: #003087;
-      --emergency-blue: #0088ff;
+      --primary: #059669;
+      --primary-hover: #047857;
+      --bg-color: #f0fdf4;
+      --card-bg: #ffffff;
+      --text-main: #1f2937;
+      --text-sub: #6b7280;
+      --border-color: #e5e7eb;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-
+    * { box-sizing: border-box; }
     body {
-      background-color: var(--kaku-bg);
-      color: #fff;
-      padding-top: 60px;
-      padding-bottom: 70px;
-      display: flex;
-      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 12px 8px 40px;
+      -webkit-text-size-adjust: 100%;
     }
 
-    .app-container {
-      width: 100%;
-      max-width: 480px;
-      min-height: 100vh;
-      background: var(--kaku-bg);
-      position: relative;
-    }
+    .container { max-width: 400px; margin: 0 auto; }
+    .header-logo { text-align: center; font-size: 1.2rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; }
+    .card { background: var(--card-bg); border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
+    .card-title { font-size: 0.9rem; font-weight: bold; color: var(--primary); border-bottom: 2px solid #ecfdf5; padding-bottom: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-    /* ヘッダー */
-    .header {
-      position: fixed;
-      top: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 100%; max-width: 480px;
-      height: 60px;
-      background: #12121c;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 15px;
-      z-index: 10;
-      border-bottom: 1px solid #252535;
-    }
+    label { display: block; font-weight: 700; font-size: 0.8rem; margin-top: 10px; }
+    input[type="text"], input[type="number"], input[type="email"] { width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 4px; font-size: 0.85rem; }
+    .btn { width: 100%; background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer; margin-top: 12px; }
+    .btn-sub { background: #10b981; margin-top: 6px; }
 
-    .header-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .upload-box { border: 2px dashed #a7f3d0; background: #ecfdf5; border-radius: 8px; padding: 20px 10px; text-align: center; cursor: pointer; margin-top: 10px; }
+    .status-badge { background: #d1fae5; color: var(--primary); padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; }
+    
+    .nav-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
+    .tab-btn { flex: 1; padding: 8px 4px; background: #e5e7eb; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; color: var(--text-sub); }
+    .tab-btn.active { background: var(--primary); color: white; }
 
-    .menu-btn {
-      background: none;
-      border: none;
-      color: #fff;
-      font-size: 1.4rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .logo {
-      font-size: 1.4rem;
-      font-weight: 900;
-      color: var(--kaku-red);
-      letter-spacing: -0.5px;
-      text-shadow: 0 0 10px rgba(255, 0, 85, 0.5);
-    }
-
-    .coin-status {
-      display: flex;
-      align-items: center;
-      background: #222230;
-      padding: 4px 12px;
-      border-radius: 20px;
-      gap: 8px;
-      font-weight: bold;
-      border: 1px solid rgba(255, 215, 0, 0.3);
-    }
-
-    .coin-icon {
-      width: 20px; height: 20px;
-      background: var(--coin-gold);
-      border-radius: 50%;
-      color: #000;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.75rem; font-weight: 900;
-    }
-
-    .add-coin-btn {
-      background: var(--kaku-red);
-      color: #fff;
-      border: none;
-      border-radius: 50%;
-      width: 22px; height: 22px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    /* サイドメニュー（三本線） */
-    .sidebar {
-      position: fixed;
-      top: 0; left: -280px;
-      width: 280px; height: 100%;
-      background: #12121c;
-      border-right: 1px solid #252535;
-      z-index: 200;
-      transition: left 0.3s ease;
-      padding: 20px 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .sidebar.open { left: 0; }
-
-    .sidebar-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.6);
-      z-index: 199;
-      display: none;
-    }
-
-    .sidebar-title {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #fff;
-      border-bottom: 1px solid #252535;
-      padding-bottom: 10px;
-      margin-bottom: 10px;
-    }
-
-    .menu-item-btn {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #3a3a4c;
-      background: #1a1a24;
-      color: #fff;
-      font-weight: bold;
-      font-size: 0.85rem;
-      text-align: left;
-      cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
-    }
-
-    .menu-item-btn:hover { background: #252535; }
-
-    .menu-item-btn.btn-bug {
-      background: #2b1118;
-      border-color: #ff0055;
-      color: #ff88a5;
-    }
-
-    .menu-item-btn.btn-bug.active-blue {
-      background: #0d233a !important;
-      border-color: var(--emergency-blue) !important;
-      color: #88ccff !important;
-    }
-
-    /* 低電力・緊急モード通知バー */
-    .emergency-banner {
-      background: var(--emergency-blue);
-      color: #fff;
-      font-size: 0.75rem;
-      font-weight: bold;
-      text-align: center;
-      padding: 6px;
-      display: none;
-    }
-
-    /* カテゴリタブ */
-    .category-bar {
-      display: flex;
-      background: #12121c;
-      border-bottom: 1px solid #252535;
-    }
-
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 12px 0;
-      font-size: 0.95rem;
-      font-weight: bold;
-      color: #fff;
-      border-bottom: 3px solid var(--kaku-red);
-      background: rgba(255, 0, 85, 0.05);
-    }
-
-    /* パック一覧 */
-    .pack-list {
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .pack-card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #2a2a3a;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-      position: relative;
-    }
-
-    .pack-banner {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      display: block;
-    }
-
-    .pack-info { padding: 12px; }
-    .pack-title { font-size: 1rem; font-weight: bold; margin-bottom: 8px; }
-
-    .price-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-
-    .price {
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: var(--coin-gold);
-      display: flex; align-items: center; gap: 6px;
-    }
-
-    .original-price {
-      font-size: 0.85rem;
-      color: var(--text-gray);
-      text-decoration: line-through;
-    }
-
-    .discount-badge {
-      position: absolute;
-      top: 10px; left: 10px;
-      background: var(--kaku-red);
-      color: #fff;
-      font-weight: 900;
-      font-size: 0.8rem;
-      padding: 4px 8px;
-      border-radius: 6px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-      z-index: 2;
-    }
-
-    .stock-text { font-size: 0.8rem; color: var(--text-gray); }
-
-    .progress-bar {
-      width: 100%; height: 8px;
-      background: #2a2a38;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-bottom: 12px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #00ff88, #00f3ff);
-    }
-
-    .gacha-btn-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .gacha-btn {
-      background: linear-gradient(135deg, #ff0055, #ff5500);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 4px;
-      font-weight: bold;
-      font-size: 0.85rem;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(255, 0, 85, 0.3);
-      transition: transform 0.1s;
-    }
-
-    .gacha-btn:active { transform: scale(0.96); }
-
-    /* 下部ナビゲーション */
-    .footer-nav {
-      position: fixed;
-      bottom: 0; left: 50%;
-      transform: translateX(-50%);
-      width: 100%; max-width: 480px;
-      height: 60px;
-      background: #12121c;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      border-top: 1px solid #252535;
-      z-index: 10;
-    }
-
-    .nav-item {
-      display: flex; flex-direction: column; align-items: center;
-      font-size: 0.75rem; color: var(--text-gray);
-      background: none; border: none; cursor: pointer;
-      gap: 3px;
-    }
-
-    .nav-item.active { color: var(--kaku-red); font-weight: bold; }
-
-    /* モーダル類 */
-    .modal {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.85);
-      backdrop-filter: blur(5px);
-      z-index: 100;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    .modal-box {
-      width: 100%; max-width: 360px;
-      background: #1a1a24;
-      border: 2px solid var(--kaku-red);
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
-      position: relative;
-    }
-
-    .modal-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; color: #fff; }
-
-    .close-icon {
-      position: absolute; top: 10px; right: 15px;
-      font-size: 1.5rem; color: var(--text-gray); cursor: pointer;
-    }
-
-    /* 演出モーダル */
-    .video-modal {
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: #000;
-      z-index: 101;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-    }
-    .video-modal video { width: 100%; height: 100%; object-fit: contain; }
-
-    .star-stage {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px;
-    }
-    .star-icon { font-size: 4rem; transition: transform 1.5s ease-out, opacity 0.5s; }
-    .star-text { font-size: 1.5rem; font-weight: 900; color: var(--coin-gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.8); }
-
-    .result-rank { font-size: 1.5rem; font-weight: 900; color: var(--coin-gold); margin-bottom: 10px; }
-    .result-item-name { font-size: 1.05rem; font-weight: bold; margin-bottom: 15px; max-height: 180px; overflow-y: auto; text-align: left; background: #0f0f15; padding: 10px; border-radius: 8px; }
-
-    .action-btns { display: flex; flex-direction: column; gap: 10px; }
-    .act-btn {
-      padding: 12px; border: none; border-radius: 25px; font-weight: bold; font-size: 0.95rem; cursor: pointer;
-    }
-    .btn-coin { background: var(--coin-gold); color: #000; }
-    .btn-ship { background: var(--kaku-red); color: #fff; }
-    .btn-paypal { background: var(--paypal-blue); color: #fff; font-size: 1rem; }
-
-    .form-input {
-      width: 100%; padding: 10px; margin: 8px 0 15px;
-      border-radius: 8px; border: 1px solid #3a3a4c; background: #0f0f15; color: #fff;
-    }
-
-    .coin-plan {
-      display: flex; justify-content: space-between; align-items: center;
-      background: #252535; padding: 12px; border-radius: 8px; margin-bottom: 10px;
-    }
-
-    .code-section {
-      border-top: 1px solid #3a3a4c; margin-top: 15px; padding-top: 15px; text-align: left;
-    }
-    .code-title { font-size: 0.85rem; color: var(--text-gray); margin-bottom: 5px; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 320px; text-align: center; }
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 12px auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <!-- 低電力/緊急修正モード通知 -->
-    <div class="emergency-banner" id="emergencyBanner">⚡ 低電力通信・緊急修正モード稼働中</div>
-
-    <!-- ヘッダー -->
-    <header class="header">
-      <div class="header-left">
-        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-        <div class="logo">カクオリパ</div>
-      </div>
-      <div class="coin-status">
-        <div class="coin-icon">⚡</div>
-        <span id="userCoins">150</span>
-        <button class="add-coin-btn" onclick="openModal('paypalModal')">＋</button>
-      </div>
-    </header>
-
-    <!-- サイドバー -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-    <div class="sidebar" id="sidebar">
-      <div class="sidebar-title">システム・修復設定</div>
-      <button class="menu-item-btn" onclick="cleanCache()">🧹 キャッシュクリーン</button>
-      <button class="menu-item-btn btn-bug" id="bugFixBtn" onclick="handleBugFix()">🚨 バグが直りません。</button>
-      <button class="menu-item-btn" style="color:#ff5555; border-color:#552222;" onclick="purgeLocalCache()">⚠️ ローカルキャッシュを削除</button>
+  <div class="container">
+    <div class="header-logo">
+      <i class="fa-solid fa-building-columns"></i> CoreBank
     </div>
 
-    <!-- カテゴリタブ -->
-    <div class="category-bar">
-      <div class="tab">通常オリパ類</div>
-    </div>
-
-    <!-- パック一覧 -->
-    <div class="pack-list" id="packList"></div>
-
-    <!-- 下部ナビ -->
-    <nav class="footer-nav">
-      <button class="nav-item active" onclick="scrollToTop()">
-        <span>🏠</span>
-        <span>オリパ一覧</span>
-      </button>
-      <button class="nav-item" onclick="openHistory()">
-        <span>📜</span>
-        <span>獲得履歴</span>
-      </button>
-      <button class="nav-item" onclick="openModal('addressModal')">
-        <span>📍</span>
-        <span>住所設定</span>
-      </button>
-      <button class="nav-item" onclick="openModal('paypalModal')">
-        <span>💳</span>
-        <span>COIN購入</span>
-      </button>
-    </nav>
-  </div>
-
-  <!-- 動画/星演出モーダル -->
-  <div class="video-modal" id="videoModal">
-    <video id="gachaVideo" playsinline style="display:none;"></video>
-    <div class="star-stage" id="starStage" style="display:none;">
-      <div class="star-icon" id="starAnim">⭐</div>
-      <div class="star-text" id="starMsg">止まれ...！</div>
-    </div>
-  </div>
-
-  <!-- ガチャ結果モーダル -->
-  <div class="modal" id="resultModal">
-    <div class="modal-box">
-      <div class="result-rank" id="resRank">結果発表</div>
-      <div class="result-item-name" id="resName"></div>
-
-      <div class="action-btns" id="actionBtns">
-        <button class="act-btn btn-coin" id="btnConvertCoin" onclick="convertCoin()">すべてコインに変換 (<span id="coinVal">0</span> COIN)</button>
-        <button class="act-btn btn-ship" id="btnShipItem" onclick="showShipForm()">自宅に発送する</button>
+    <!-- 1. 本人確認 & 口座開設ステップ -->
+    <div id="section-kyc">
+      <div class="card" id="step-qr">
+        <div class="card-title"><i class="fa-solid fa-qrcode"></i> 本人確認QRコード読み込み</div>
+        <p style="font-size: 0.75rem; color: var(--text-sub); margin: 0 0 10px 0;">
+          運営からメールで届いた「本人確認用QRコード」の写真を保存し、選択してください。
+        </p>
+        <div class="upload-box" onclick="document.getElementById('qr-input').click()">
+          <i class="fa-solid fa-file-image" style="font-size: 2rem; color: var(--primary);"></i>
+          <div style="font-size:0.8rem; font-weight:bold; color:var(--primary); margin-top:4px;">QRコード画像を選択</div>
+        </div>
+        <input type="file" id="qr-input" accept="image/*" style="display:none;" onchange="processQRImage(this)">
+        <canvas id="qr-canvas" style="display:none;"></canvas>
       </div>
 
-      <div id="shipForm" style="display:none; text-align:left; margin-top:15px;">
-        <label style="font-size:0.8rem">お届け先住所:</label>
-        <input type="text" class="form-input" id="addressInput" placeholder="住所を入力してください">
-        <button class="act-btn btn-ship" style="width:100%" onclick="submitShip()">発送確定</button>
+      <div class="card" id="step-register" style="display:none;">
+        <div class="card-title">
+          <i class="fa-solid fa-id-card"></i> 口座名義登録
+          <span class="status-badge">本人確認完了</span>
+        </div>
+        <label>口座名義人（ローマ字）</label>
+        <input type="text" id="reg-roman-name" placeholder="例: TARO YAMADA" style="text-transform: uppercase;">
+        <button class="btn" onclick="completeAccountCreation()">口座開設を確定する</button>
       </div>
     </div>
-  </div>
 
-  <!-- COINチャージ Modal -->
-  <div class="modal" id="paypalModal">
-    <div class="modal-box">
-      <span class="close-icon" onclick="closeModal('paypalModal')">×</span>
-      <div class="modal-title">COINチャージ</div>
-      
-      <div class="coin-plan">
-        <span>⚡ 100 COIN</span>
-        <button class="act-btn btn-paypal" onclick="redirectToPaypal('100', '60')">¥60 で購入</button>
-      </div>
-      <div class="coin-plan">
-        <span>⚡ 500 COIN</span>
-        <button class="act-btn btn-paypal" onclick="redirectToPaypal('500', '130')">¥130 で購入</button>
-      </div>
-      <div class="coin-plan">
-        <span>⚡ 1000 COIN</span>
-        <button class="act-btn btn-paypal" onclick="redirectToPaypal('1000', '260')">¥260 で購入</button>
+    <!-- 2. マイページ（ログイン後表示） -->
+    <div id="section-mypage" style="display:none;">
+      <!-- アカウント情報カード -->
+      <div class="card">
+        <div class="card-title">
+          <span id="user-branch">コアバンク根岸店</span>
+          <span class="status-badge">NORMAL</span>
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-sub);">口座番号: <strong id="user-acc-num" style="color:var(--text-main);"></strong></div>
+        <div style="font-size:0.8rem; color:var(--text-sub);">名義: <strong id="user-name" style="color:var(--text-main);"></strong></div>
+        <hr style="border:none; border-top:1px dashed var(--border-color); margin:10px 0;">
+        <div style="font-size:0.75rem; color:var(--text-sub);">利用可能残高</div>
+        <div style="font-size:1.6rem; font-weight:800; color:var(--primary);"><span id="user-balance">0</span> 円</div>
       </div>
 
-      <div class="code-section">
-        <div class="code-title">チャージコードをお持ちの方:</div>
-        <input type="password" class="form-input" id="chargeCodeInput" placeholder="••••••••••••" style="margin-bottom:8px;">
-        <button class="act-btn btn-ship" style="width:100%; border-radius:8px; padding:10px;" onclick="redeemCode()">コードを適用する</button>
+      <!-- 操作タブナビゲーション -->
+      <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('transfer')">個人間送金</button>
+        <button class="tab-btn" onclick="switchTab('shimru')">SHIMRU決済</button>
+        <button class="tab-btn" onclick="switchTab('charge')">コードチャージ</button>
+      </div>
+
+      <!-- Tab 1: 個人間送金 -->
+      <div class="card tab-content" id="tab-transfer">
+        <div class="card-title"><i class="fa-solid fa-paper-plane"></i> 相手の名義（ローマ字）で検索</div>
+        <label>送金先名義検索</label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="search-query" placeholder="例: YAMADA">
+          <button class="btn" style="width: auto; margin-top: 4px; padding: 0 12px;" onclick="searchUser()">検索</button>
+        </div>
+        
+        <div id="search-results" style="margin-top:8px;"></div>
+
+        <label>選択された送金先</label>
+        <input type="text" id="target-acc-num" readonly placeholder="相手を選択してください" style="background:#f3f4f6;">
+
+        <label>送金金額（円）</label>
+        <input type="number" id="transfer-amount" placeholder="1000">
+        <div style="font-size:0.7rem; color:var(--primary); margin-top:2px;">※送金すると送金額の0.7%が利子として即時還元されます。</div>
+
+        <button class="btn" onclick="executeTransfer()">送金を実行する</button>
+      </div>
+
+      <!-- Tab 2: SHIMRU法人支払い -->
+      <div class="card tab-content" id="tab-shimru" style="display:none;">
+        <div class="card-title"><i class="fa-solid fa-building"></i> SHIMRU法人への支払い</div>
+        <label>提供サービス名</label>
+        <input type="text" id="shimru-service" placeholder="例: プレミアム会員月額">
+
+        <label>お名前</label>
+        <input type="text" id="shimru-payer" placeholder="例: 山田 太郎">
+
+        <label>支払金額（円）</label>
+        <input type="number" id="shimru-amount" placeholder="5000">
+
+        <button class="btn" onclick="executeShimruPay()">支払いを確定する</button>
+      </div>
+
+      <!-- Tab 3: プリペイドコードチャージ -->
+      <div class="card tab-content" id="tab-charge" style="display:none;">
+        <div class="card-title"><i class="fa-solid fa-bolt"></i> プリペイドコードチャージ</div>
+        <label>16桁プリペイドコード</label>
+        <input type="text" id="prepaid-code" placeholder="例: ABCD-1234-EFGH-5678">
+
+        <button class="btn btn-sub" onclick="executePrepaidCharge()">チャージを実行する</button>
       </div>
     </div>
   </div>
 
-  <!-- 住所設定モーダル -->
-  <div class="modal" id="addressModal">
-    <div class="modal-box">
-      <span class="close-icon" onclick="closeModal('addressModal')">×</span>
-      <div class="modal-title">配送先住所の設定</div>
-      <input type="text" class="form-input" id="defaultAddress" placeholder="例: 東京都渋谷区宇田川町1-1">
-      <button class="act-btn btn-ship" style="width:100%" onclick="saveAddress()">保存する</button>
-    </div>
-  </div>
-
-  <!-- 獲得履歴モーダル -->
-  <div class="modal" id="historyModal">
-    <div class="modal-box">
-      <span class="close-icon" onclick="closeModal('historyModal')">×</span>
-      <div class="modal-title">獲得履歴</div>
-      <div id="historyList" style="max-height: 250px; overflow-y: auto; text-align: left; font-size:0.85rem;"></div>
+  <!-- 送金中・運営確認モーダル -->
+  <div class="modal-overlay" id="transfer-modal" style="display:none;">
+    <div class="modal-content">
+      <div class="spinner"></div>
+      <div style="font-size:0.9rem; font-weight:bold; color:var(--text-main);">送金処理中</div>
+      <div style="font-size:0.75rem; color:var(--text-sub); margin-top:6px;">
+        運営が代金を確認しています。<br>送金完了まで最大10分かかります。
+      </div>
+      <div style="font-size:1.1rem; font-weight:bold; color:var(--primary); margin-top:10px;" id="modal-timer">10秒</div>
     </div>
   </div>
 
   <script>
-    const SPREADSHEET_ID = '1CaHgKm-ti-JVyW79mK8wXT21TqjTrIEz6_YYbtrn-5U';
-    const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
-    const PAYPAL_RECEIVER = 'sixyami1206@gmail.com';
-    const SECRET_KEY = '12065533';
+    const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxg3CQOiVAVJ3lYw7Yaa47VurkUs9Ly4f8qgf6VTWCfZFhXQKQj-eNIglSmoxPDl0WPRA/exec";
 
-    let isNewUser = localStorage.getItem('kaku_is_new') === null;
-    let userCoins = parseInt(localStorage.getItem('kaku_coins')) || 150;
-    let savedAddress = localStorage.getItem('kaku_address') || '';
-    let history = JSON.parse(localStorage.getItem('kaku_history')) || [];
-    
-    let packs = [];
-    let currentResults = [];
-    let totalReturnCoin = 0;
-    let hasOnlyCoinItems = false;
+    let currentUser = { email: "", romanName: "", accountNumber: "", balance: 0 };
 
-    // 低電力・修復状態フラグ
-    let isLowPowerMode = false;
-    let isEmergencyActive = false;
-    let emergencyTimer = null;
-    let syncInterval = 5000;
-    let syncTimerId = null;
+    // --- 1. QRコード解析 ---
+    function processQRImage(input) {
+      if (!input.files || !input.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.getElementById('qr-canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width; canvas.height = img.height;
+          ctx.drawImage(img, 0, 0, img.width, img.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
 
-    const DEFAULT_COIN_RETURNS = { '1等': 1600, '2等': 600, '3等': 10, '4等': 1 };
-
-    function toggleSidebar() {
-      const sidebar = document.getElementById('sidebar');
-      const overlay = document.getElementById('sidebarOverlay');
-      const isOpen = sidebar.classList.contains('open');
-      if (isOpen) {
-        sidebar.classList.remove('open');
-        overlay.style.display = 'none';
-      } else {
-        sidebar.classList.add('open');
-        overlay.style.display = 'block';
-      }
+          if (code) {
+            try {
+              const payload = JSON.parse(code.data);
+              if (payload.kyc === "OK" && payload.email) {
+                currentUser.email = payload.email;
+                document.getElementById('step-qr').style.display = 'none';
+                document.getElementById('step-register').style.display = 'block';
+              } else { alert('無効な本人確認QRコードです。'); }
+            } catch(err) { alert('CoreBank用のQRコードではありません。'); }
+          } else { alert('QRコードを読み取れませんでした。'); }
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
     }
 
-    /* 三本線メニュー機能 1: ローカルキャッシュを削除（データ完全リセット） */
-    function purgeLocalCache() {
-      const confirm1 = confirm("【警告】ローカルキャッシュおよび保存データを完全に削除しますか？\n（獲得履歴やコイン残高がフォーマット初期化されます）");
-      if (!confirm1) return;
+    // --- 2. 口座開設実行 ---
+    function completeAccountCreation() {
+      const romanName = document.getElementById('reg-roman-name').value.trim().toUpperCase();
+      if (!romanName) return alert('ローマ字名義を入力してください。');
 
-      const confirm2 = confirm("本当に実行してよろしいですか？この操作は取り消せません。");
-      if (!confirm2) return;
+      fetch(GAS_ENDPOINT, {
+        method: "POST",
+        body: JSON.stringify({ action: "createAccount", romanName: romanName, email: currentUser.email })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          currentUser.romanName = romanName;
+          currentUser.accountNumber = res.accountNumber;
+          currentUser.balance = res.balance;
 
-      localStorage.clear();
-      alert("データを完全フォーマットしました。再起動します。");
-      window.location.reload();
+          alert(`口座開設が完了しました！\n口座番号: ${res.accountNumber}\n初期パスワード: ${res.password}`);
+          
+          document.getElementById('section-kyc').style.display = 'none';
+          document.getElementById('section-mypage').style.display = 'block';
+          updateUserUI();
+        } else { alert(res.message); }
+      });
     }
 
-    /* 三本線メニュー機能 2: キャッシュクリーン */
-    function cleanCache() {
-      toggleSidebar();
-      loadData();
-      alert("キャッシュを再クリーンアップし、最新データを読み込みました。");
+    function updateUserUI() {
+      document.getElementById('user-acc-num').textContent = currentUser.accountNumber;
+      document.getElementById('user-name').textContent = currentUser.romanName;
+      document.getElementById('user-balance').textContent = currentUser.balance.toLocaleString();
     }
 
-    /* 三本線メニュー機能 3: バグが直りません。（緊急修正＋低電力モード） */
-    function handleBugFix() {
-      const btn = document.getElementById('bugFixBtn');
+    // --- 3. タブ切り替え ---
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
+      event.target.classList.add('active');
+      document.getElementById(`tab-${tabName}`).style.display = 'block';
+    }
 
-      if (isEmergencyActive) {
-        // 解除処理
-        isEmergencyActive = false;
-        isLowPowerMode = false;
-        btn.classList.remove('active-blue');
-        btn.innerText = "🚨 バグが直りません。";
-        document.getElementById('emergencyBanner').style.display = 'none';
-        
-        // 通常同期速度に戻す
-        clearInterval(syncTimerId);
-        syncInterval = 5000;
-        syncTimerId = setInterval(loadData, syncInterval);
+    // --- 4. ユーザー検索 ---
+    function searchUser() {
+      const q = document.getElementById('search-query').value.trim();
+      if (!q) return;
 
-        alert("緊急修正・低電力モードを解除しました。通常モードへ復帰します。");
-        toggleSidebar();
-        return;
-      }
+      fetch(`${GAS_ENDPOINT}?action=searchUser&name=${encodeURIComponent(q)}`)
+      .then(res => res.json())
+      .then(list => {
+        const container = document.getElementById('search-results');
+        container.innerHTML = "";
+        if (list.length === 0) { container.innerHTML = "<div style='font-size:0.75rem; color:red;'>該当する名義が見つかりません</div>"; return; }
+        list.forEach(u => {
+          const div = document.createElement('div');
+          div.style.cssText = "padding:6px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:4px; margin-bottom:4px; font-size:0.75rem; cursor:pointer;";
+          div.innerHTML = `<strong>${u.holderName}</strong> (${u.accountNumber})`;
+          div.onclick = () => { document.getElementById('target-acc-num').value = u.accountNumber; };
+          container.appendChild(div);
+        });
+      });
+    }
 
-      // 緊急修正モード 発動
-      isEmergencyActive = true;
-      isLowPowerMode = true;
-      btn.classList.add('active-blue');
-      btn.innerText = "⏳ 処理中... (10秒お待ちください)";
-      btn.disabled = true;
+    // --- 5. 個人間送金（10秒タイマー & 0.7% 利子還元）---
+    function executeTransfer() {
+      const toAcc = document.getElementById('target-acc-num').value;
+      const amount = Number(document.getElementById('transfer-amount').value);
+      if (!toAcc || amount <= 0) return alert('送金先と金額を正しく入力してください。');
 
-      // 欠落データの補填 & キャッシュのクリーン
-      if (isNaN(userCoins)) userCoins = 150;
-      if (!Array.isArray(history)) history = [];
-      updateStorage();
-      loadData();
+      if (currentUser.balance < amount) return alert('残高が不足しています。');
 
-      document.getElementById('emergencyBanner').style.display = 'block';
+      // 10秒カウントダウン表示
+      const modal = document.getElementById('transfer-modal');
+      const timerLabel = document.getElementById('modal-timer');
+      modal.style.display = 'flex';
+      let left = 10;
+      timerLabel.textContent = `${left}秒`;
 
-      // 遅延実行（低電力化）
-      clearInterval(syncTimerId);
-      syncInterval = 15000; // 同期速度を低速化
-      syncTimerId = setInterval(loadData, syncInterval);
-
-      let countdown = 10;
-      emergencyTimer = setInterval(() => {
-        countdown--;
-        if (countdown > 0) {
-          btn.innerText = `⏳ 適用完了まで (${countdown}秒)`;
-        } else {
-          clearInterval(emergencyTimer);
-          btn.disabled = false;
-          btn.innerText = "🔵 緊急修正モード適正解除";
-          alert("緊急修正・補填完了。低電力モードで安定稼働を開始しました。解除する場合は青いボタンを押してください。");
+      const countdown = setInterval(() => {
+        left--;
+        timerLabel.textContent = `${left}秒`;
+        if (left <= 0) {
+          clearInterval(countdown);
+          // バックエンド送金処理
+          fetch(GAS_ENDPOINT, {
+            method: "POST",
+            body: JSON.stringify({
+              action: "transfer",
+              fromAccountNumber: currentUser.accountNumber,
+              toAccountNumber: toAcc,
+              amount: amount
+            })
+          })
+          .then(res => res.json())
+          .then(res => {
+            modal.style.display = 'none';
+            if (res.success) {
+              currentUser.balance = res.newBalance;
+              updateUserUI();
+              alert(`送金が完了しました！\n0.7%の利子（+${res.interestAdded}円）が還元されました。`);
+            } else { alert(res.message); }
+          });
         }
       }, 1000);
-
-      toggleSidebar();
     }
 
-    function updateStorage() {
-      localStorage.setItem('kaku_coins', userCoins);
-      localStorage.setItem('kaku_address', savedAddress);
-      localStorage.setItem('kaku_history', JSON.stringify(history));
-      localStorage.setItem('kaku_is_new', 'false');
-      document.getElementById('userCoins').innerText = userCoins.toLocaleString();
-    }
+    // --- 6. SHIMRU法人決済 ---
+    function executeShimruPay() {
+      const service = document.getElementById('shimru-service').value.trim();
+      const payer = document.getElementById('shimru-payer').value.trim();
+      const amount = Number(document.getElementById('shimru-amount').value);
 
-    async function loadData() {
-      document.getElementById('userCoins').innerText = userCoins.toLocaleString();
-      if (savedAddress) {
-        document.getElementById('defaultAddress').value = savedAddress;
-      }
+      if (!service || !payer || amount <= 0) return alert('すべての項目を入力してください。');
 
-      try {
-        const res = await fetch(GVIZ_URL);
-        const txt = await res.text();
-        const json = JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}') + 1));
-        const cols = json.table.cols.map(c => c ? c.label : '');
-        
-        packs = json.table.rows.map(r => {
-          let item = {};
-          r.c.forEach((cell, i) => { 
-            const colName = cols[i] || '';
-            item[colName] = cell ? cell.v : ''; 
-            item[`_col_${i}`] = cell ? cell.v : '';
-          });
-
-          item['_rate1'] = item['1等確率'] || item['_col_9'] || 0;
-          item['_rate2'] = item['2等確率'] || item['_col_10'] || 0;
-          item['_rate3'] = item['3等確率'] || item['_col_11'] || 0;
-          item['_rate4'] = item['4等確率'] || item['_col_12'] || 0;
-          item['_effectVideo'] = item['演出動画'] || item['動画URL'] || item['_col_13'] || '';
-
-          return item;
-        }).filter(item => item['名前'] || item['_col_0']);
-
-        renderPackList();
-      } catch (e) {
-        console.error("データ同期エラー:", e);
-      }
-    }
-
-    syncTimerId = setInterval(loadData, syncInterval);
-
-    function renderPackList() {
-      const container = document.getElementById('packList');
-      container.innerHTML = '';
-
-      packs.forEach((p, idx) => {
-        const originalCost = parseInt(p['必要COIN'] || p['_col_1'] || 0);
-        const finalCost = isNewUser ? Math.floor(originalCost * 0.2) : originalCost;
-
-        const stock = p['在庫数'] || p['_col_2'] || 100;
-        const percent = Math.min(100, (stock / 50000) * 100);
-
-        const card = document.createElement('div');
-        card.className = 'pack-card';
-        card.innerHTML = `
-          ${isNewUser ? '<div class="discount-badge">新規限定 80% OFF</div>' : ''}
-          <img class="pack-banner" src="${p['サムネURL'] || p['_col_3'] || ''}" alt="パック">
-          <div class="pack-info">
-            <div class="pack-title">${p['名前'] || p['_col_0']}</div>
-            <div class="price-row">
-              <div class="price">
-                ⚡ ${Number(finalCost).toLocaleString()} /1回
-                ${isNewUser ? `<span class="original-price">⚡${Number(originalCost).toLocaleString()}</span>` : ''}
-              </div>
-              <div class="stock-text">残り ${Number(stock).toLocaleString()}口</div>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: ${percent}%"></div>
-            </div>
-            
-            <div class="gacha-btn-grid">
-              <button class="gacha-btn" onclick="drawGacha(${idx}, 1)">1回引く</button>
-              <button class="gacha-btn" onclick="drawGacha(${idx}, 10)">10回引く</button>
-              <button class="gacha-btn" onclick="drawGacha(${idx}, 100)">100回引く</button>
-              <button class="gacha-btn" onclick="drawGacha(${idx}, 1000)">1000回ひく！</button>
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
+      fetch(GAS_ENDPOINT, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "payToShimru",
+          accountNumber: currentUser.accountNumber,
+          serviceName: service,
+          payerName: payer,
+          amount: amount
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          currentUser.balance = res.newBalance;
+          updateUserUI();
+          alert('SHIMRU法人への支払いが完了し、着金通知が送信されました！');
+        } else { alert(res.message); }
       });
     }
 
-    function parseToFloat(val) {
-      if (!val) return 0;
-      let num = parseFloat(val);
-      return isNaN(num) ? 0 : num;
-    }
+    // --- 7. プリペイドチャージ ---
+    function executePrepaidCharge() {
+      const code = document.getElementById('prepaid-code').value.trim();
+      if (!code) return alert('コードを入力してください。');
 
-    function extractCoinAmount(itemName, rank) {
-      if (!itemName) return DEFAULT_COIN_RETURNS[rank] || 0;
-      const sanitized = String(itemName).replace(/,/g, '');
-      const match = sanitized.match(/\d+/);
-      if (match) {
-        return parseInt(match[0], 10);
-      }
-      return DEFAULT_COIN_RETURNS[rank] || 0;
-    }
-
-    function drawGacha(idx, count) {
-      const p = packs[idx];
-      const originalCost = parseInt(p['必要COIN'] || p['_col_1'] || 0);
-      const singleCost = isNewUser ? Math.floor(originalCost * 0.2) : originalCost;
-      const totalCost = singleCost * count;
-
-      if (userCoins < totalCost) {
-        alert(`コインが不足しています！（必要: ⚡${totalCost.toLocaleString()} COIN）`);
-        openModal('paypalModal');
-        return;
-      }
-
-      userCoins -= totalCost;
-      updateStorage();
-
-      const baseW1 = parseToFloat(p['_rate1']);
-      const baseW2 = parseToFloat(p['_rate2']);
-      const baseW3 = parseToFloat(p['_rate3']);
-      const baseW4 = parseToFloat(p['_rate4']);
-
-      let w1 = baseW1;
-      let w2 = baseW2;
-      let w3 = baseW3;
-      let w4 = baseW4;
-
-      if (count > 1) {
-        w1 = baseW1 / count;
-        w2 = baseW2 / count;
-        w3 = baseW3 / count;
-        const div4 = Math.max(1, count / 2);
-        w4 = baseW4 / div4;
-      }
-
-      const totalWeight = w1 + w2 + w3 + w4;
-
-      currentResults = [];
-      totalReturnCoin = 0;
-
-      for (let i = 0; i < count; i++) {
-        const rand = Math.random() * (totalWeight > 0 ? totalWeight : 100);
-        let rank = '4等';
-        let name = p['4等'] || p['_col_7'] || 'ノーマルカード';
-
-        if (rand < w1) {
-          rank = '1等'; name = p['一等'] || p['1等'] || p['_col_4'];
-        } else if (rand < (w1 + w2)) {
-          rank = '2等'; name = p['2等'] || p['_col_5'];
-        } else if (rand < (w1 + w2 + w3)) {
-          rank = '3等'; name = p['3等'] || p['_col_6'];
-        }
-
-        const coinAmount = extractCoinAmount(name, rank);
-        const isCoinGrant = String(name).includes('コイン付与');
-
-        currentResults.push({
-          rank,
-          name,
-          coinAmount,
-          isCoinGrant
-        });
-
-        totalReturnCoin += coinAmount;
-      }
-
-      // 低電力モード時は長時間の演出処理をスキップして高速結果表示
-      if (isLowPowerMode) {
-        showResultModal();
-        return;
-      }
-
-      if (count === 1) {
-        const firstWin = currentResults[0];
-        const isSuperWin = (firstWin.rank === '1等' || firstWin.rank === '2等');
-        const videoUrl = isSuperWin ? p['_effectVideo'] : '';
-
-        if (videoUrl) {
-          playVideoEffect(videoUrl);
-        } else {
-          playStarEffect(firstWin.rank);
-        }
-      } else {
-        showResultModal();
-      }
-    }
-
-    function playVideoEffect(url) {
-      const modal = document.getElementById('videoModal');
-      const video = document.getElementById('gachaVideo');
-      const starStage = document.getElementById('starStage');
-
-      starStage.style.display = 'none';
-      video.style.display = 'block';
-      video.src = url;
-
-      modal.style.display = 'flex';
-      video.play();
-      video.onended = () => {
-        modal.style.display = 'none';
-        showResultModal();
-      };
-    }
-
-    function playStarEffect(rank) {
-      const modal = document.getElementById('videoModal');
-      const video = document.getElementById('gachaVideo');
-      const starStage = document.getElementById('starStage');
-      const starAnim = document.getElementById('starAnim');
-      const starMsg = document.getElementById('starMsg');
-
-      video.style.display = 'none';
-      starStage.style.display = 'flex';
-      modal.style.display = 'flex';
-
-      starMsg.innerText = "止まれ...！";
-      starAnim.style.transform = "translateX(-200px) scale(0.5)";
-      starAnim.style.opacity = "1";
-
-      setTimeout(() => {
-        if (rank === '3等') {
-          starAnim.style.transform = "translateX(0px) scale(1.5)";
-          setTimeout(() => {
-            starMsg.innerText = "止まった！！ (3等確)";
-            setTimeout(() => { modal.style.display = 'none'; showResultModal(); }, 1000);
-          }, 1200);
-        } else {
-          starAnim.style.transform = "translateX(200px) scale(0.5)";
-          setTimeout(() => {
-            starAnim.style.opacity = "0";
-            starMsg.innerText = "通り過ぎた...";
-            setTimeout(() => { modal.style.display = 'none'; showResultModal(); }, 1000);
-          }, 1200);
-        }
-      }, 100);
-    }
-
-    function showResultModal() {
-      const resRank = document.getElementById('resRank');
-      const resName = document.getElementById('resName');
-      const btnShipItem = document.getElementById('btnShipItem');
-      const btnConvertCoin = document.getElementById('btnConvertCoin');
-
-      hasOnlyCoinItems = currentResults.every(r => r.isCoinGrant);
-
-      if (currentResults.length === 1) {
-        const item = currentResults[0];
-        resRank.innerText = `${item.rank} 当選！`;
-        resName.innerText = item.name + (item.isCoinGrant ? ' [発送対象外]' : '');
-      } else {
-        resRank.innerText = `${currentResults.length}連ガチャ結果`;
-        
-        let summary = {};
-        currentResults.forEach(r => {
-          summary[r.rank] = (summary[r.rank] || 0) + 1;
-        });
-
-        let summaryHtml = `<div style="margin-bottom:10px; color:var(--coin-gold)">【獲得内訳】<br>`;
-        for (let r in summary) {
-          summaryHtml += `${r}: ${summary[r]}枚 / `;
-        }
-        summaryHtml += `</div><hr style="border-color:#333; margin:8px 0;"><div style="font-size:0.85rem;">`;
-
-        summaryHtml += currentResults.map((item, idx) => `
-          <div style="margin-bottom:3px;">${idx+1}. <span style="color:var(--coin-gold);">${item.rank}</span>: ${item.name} ${item.isCoinGrant ? '<span style="color:#ff5555;">[発送なし]</span>' : ''}</div>
-        `).join('');
-        summaryHtml += `</div>`;
-
-        resName.innerHTML = summaryHtml;
-      }
-
-      document.getElementById('coinVal').innerText = totalReturnCoin.toLocaleString();
-      document.getElementById('actionBtns').style.display = 'flex';
-      document.getElementById('shipForm').style.display = 'none';
-
-      if (hasOnlyCoinItems) {
-        btnShipItem.style.display = 'none';
-        btnConvertCoin.innerText = `コインを受け取る (⚡ ${totalReturnCoin.toLocaleString()} COIN)`;
-      } else {
-        btnShipItem.style.display = 'block';
-        btnConvertCoin.innerText = `すべてコインに変換 (⚡ ${totalReturnCoin.toLocaleString()} COIN)`;
-      }
-
-      openModal('resultModal');
-    }
-
-    function convertCoin() {
-      userCoins += totalReturnCoin;
-      currentResults.forEach(item => {
-        history.push({ 
-          name: item.name, 
-          rank: item.rank, 
-          status: item.isCoinGrant ? `自動コイン付与済(+${item.coinAmount}COIN)` : `COIN還元済(+${item.coinAmount}COIN)` 
-        });
+      fetch(GAS_ENDPOINT, {
+        method: "POST",
+        body: JSON.stringify({
+          action: "chargePrepaid",
+          accountNumber: currentUser.accountNumber,
+          prepaidCode: code
+        })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          currentUser.balance = res.newBalance;
+          updateUserUI();
+          alert(`${res.chargedAmount}円のチャージが完了しました！`);
+        } else { alert(res.message); }
       });
-      updateStorage();
-      alert(`⚡ ${totalReturnCoin.toLocaleString()} COIN を受け取りました！`);
-      closeModal('resultModal');
     }
-
-    function showShipForm() {
-      document.getElementById('actionBtns').style.display = 'none';
-      document.getElementById('shipForm').style.display = 'block';
-      if (savedAddress) document.getElementById('addressInput').value = savedAddress;
-    }
-
-    function submitShip() {
-      const addr = document.getElementById('addressInput').value;
-      if (!addr) { alert('住所を入力してください'); return; }
-      savedAddress = addr;
-      
-      currentResults.forEach(item => {
-        if (item.isCoinGrant) {
-          userCoins += item.coinAmount;
-          history.push({ name: item.name, rank: item.rank, status: `自動コイン付与済(+${item.coinAmount}COIN)` });
-        } else {
-          history.push({ name: item.name, rank: item.rank, status: `発送受付済 (${addr})` });
-        }
-      });
-
-      updateStorage();
-      alert(`【発送受付完了】\n対象の景品の発送受付を完了しました。（コイン付与景品は直接アカウントに付与されました）`);
-      closeModal('resultModal');
-    }
-
-    function redirectToPaypal(coinAmount, priceYen) {
-      closeModal('paypalModal');
-      const currentUrl = encodeURIComponent(window.location.origin + window.location.pathname);
-      const paypalUrl = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(PAYPAL_RECEIVER)}&item_name=${coinAmount}COIN_Charge&amount=${priceYen}&currency_code=JPY&return=${currentUrl}`;
-      window.location.href = paypalUrl;
-    }
-
-    function redeemCode() {
-      const code = document.getElementById('chargeCodeInput').value.trim();
-      
-      if (code.startsWith(SECRET_KEY)) {
-        const coinStr = code.replace(SECRET_KEY, '');
-        const amount = parseInt(coinStr);
-
-        if (!isNaN(amount) && amount > 0) {
-          userCoins += amount;
-          updateStorage();
-          alert(`⚡ ${amount.toLocaleString()} COIN チャージしました！`);
-          document.getElementById('chargeCodeInput').value = '';
-          closeModal('paypalModal');
-          return;
-        }
-      }
-
-      if (code === '') {
-        alert('コードを入力してください。');
-      } else {
-        alert('無効なコードです。');
-      }
-    }
-
-    function saveAddress() {
-      savedAddress = document.getElementById('defaultAddress').value;
-      updateStorage();
-      alert('デフォルトの配送先住所を保存しました！');
-      closeModal('addressModal');
-    }
-
-    function openHistory() {
-      const container = document.getElementById('historyList');
-      if (history.length === 0) {
-        container.innerHTML = '<p style="color:var(--text-gray); text-align:center;">まだ獲得履歴がありません。</p>';
-      } else {
-        container.innerHTML = history.slice().reverse().map(item => `
-          <div style="border-bottom: 1px solid #333; padding: 8px 0;">
-            <div style="color:var(--coin-gold); font-weight:bold;">${item.rank} - ${item.name}</div>
-            <div style="font-size:0.75rem; color:var(--text-gray);">${item.status}</div>
-          </div>
-        `).join('');
-      }
-      openModal('historyModal');
-    }
-
-    function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    loadData();
   </script>
 </body>
 </html>
