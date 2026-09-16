@@ -98,9 +98,9 @@
       </div>
 
       <div class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('transfer')">個人間送金</button>
-        <button class="tab-btn" onclick="switchTab('shimru')">SHIMRU決済</button>
-        <button class="tab-btn" onclick="switchTab('charge')">コードチャージ</button>
+        <button class="tab-btn active" onclick="switchTab('transfer', event)">個人間送金</button>
+        <button class="tab-btn" onclick="switchTab('shimru', event)">SHIMRU決済</button>
+        <button class="tab-btn" onclick="switchTab('charge', event)">コードチャージ</button>
       </div>
 
       <!-- Tab 1: 個人間送金 -->
@@ -166,13 +166,24 @@
 
     let currentUser = { email: "", romanName: "", accountNumber: "", balance: 0 };
 
+    // 通信エラー（CORS/リダイレクト等）を回避する強固なPOST関数
     async function postGAS(data) {
-      const response = await fetch(GAS_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(data)
-      });
-      return await response.json();
+      try {
+        const response = await fetch(GAS_ENDPOINT, {
+          method: "POST",
+          mode: "cors",
+          redirect: "follow",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(data)
+        });
+        return await response.json();
+      } catch (e) {
+        console.warn("通常のPOST通信失敗。Fallback処理を試行します:", e);
+        // GETリクエストへの代替処理
+        const param = encodeURIComponent(JSON.stringify(data));
+        const res = await fetch(`${GAS_ENDPOINT}?payload=${param}`);
+        return await res.json();
+      }
     }
 
     function showModal(title, desc, seconds, callback) {
@@ -255,7 +266,7 @@
           email: currentUser.email
         });
 
-        if (res.success) {
+        if (res && res.success) {
           currentUser.romanName = romanName;
           currentUser.accountNumber = res.accountNumber;
           currentUser.balance = res.balance;
@@ -266,12 +277,12 @@
           document.getElementById('section-mypage').style.display = 'block';
           updateUserUI();
         } else {
-          alert("エラー: " + res.message);
+          alert("エラー: " + (res ? res.message : "口座の作成に失敗しました。"));
           btn.disabled = false;
           btn.textContent = '口座開設を確定する';
         }
       } catch (err) {
-        alert("通信エラーが発生しました。");
+        alert("通信エラーが発生しました。GASのウェブアプリURLが「全員（Anyone）」に公開されているか確認してください。");
         btn.disabled = false;
         btn.textContent = '口座開設を確定する';
       }
@@ -283,10 +294,10 @@
       document.getElementById('user-balance').textContent = currentUser.balance.toLocaleString();
     }
 
-    function switchTab(tabName) {
+    function switchTab(tabName, evt) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
-      event.target.classList.add('active');
+      if (evt && evt.target) evt.target.classList.add('active');
       document.getElementById(`tab-${tabName}`).style.display = 'block';
     }
 
@@ -311,7 +322,7 @@
           container.appendChild(div);
         });
       })
-      .catch(err => alert("検索通信エラー"));
+      .catch(err => alert("検索通信エラーが発生しました。"));
     }
 
     function executeTransfer() {
@@ -333,12 +344,12 @@
               amount: amount
             });
             hideModal();
-            if (res.success) {
+            if (res && res.success) {
               currentUser.balance = res.newBalance;
               updateUserUI();
               alert(`送金が完了しました！\n0.7%の利子（+${res.interestAdded}円）が還元されました。`);
             } else {
-              alert(res.message);
+              alert(res ? res.message : "送金処理に失敗しました。");
             }
           } catch (e) {
             hideModal();
@@ -364,12 +375,12 @@
           amount: amount
         });
 
-        if (res.success) {
+        if (res && res.success) {
           currentUser.balance = res.newBalance;
           updateUserUI();
           alert('SHIMRU法人への支払いが完了し、着金通知が送信されました！');
         } else {
-          alert(res.message);
+          alert(res ? res.message : "支払いに失敗しました。");
         }
       } catch (e) {
         alert("支払い通信エラーが発生しました。");
@@ -387,12 +398,12 @@
           prepaidCode: code
         });
 
-        if (res.success) {
+        if (res && res.success) {
           currentUser.balance = res.newBalance;
           updateUserUI();
           alert(`${res.chargedAmount}円のチャージが完了しました！`);
         } else {
-          alert(res.message);
+          alert(res ? res.message : "チャージに失敗しました。");
         }
       } catch (e) {
         alert("チャージ処理通信エラーが発生しました。");
