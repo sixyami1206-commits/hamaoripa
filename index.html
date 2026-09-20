@@ -46,7 +46,7 @@
         <div class="card-title"><i class="fa-solid fa-qrcode"></i> 本人確認QRコードスキャン</div>
         <div class="upload-box" onclick="document.getElementById('qr-input').click()">
           <i class="fa-solid fa-file-image" style="font-size: 2rem; color: var(--primary);"></i>
-          <div style="font-size:0.8rem; font-weight:bold; color:var(--primary); margin-top:4px;">QRコード画像を選択</div>
+          <div style="font-size:0.8rem; font-weight:bold; color:var(--primary); margin-top:4px;" id="upload-text">QRコード画像を選択</div>
         </div>
         <input type="file" id="qr-input" accept="image/*" style="display:none;" onchange="processQRImage(this)">
         <canvas id="qr-canvas" style="display:none;"></canvas>
@@ -128,29 +128,74 @@
     const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbxg3CQOiVAVJ3lYw7Yaa47VurkUs9Ly4f8qgf6VTWCfZFhXQKQj-eNIglSmoxPDl0WPRA/exec";
     let currentUser = { email: "", romanName: "", password: "", accountNumber: "", balance: 1 };
 
-    // QRコード読み取り＆全自動口座作成
+    // 高精度QRコード解析＆自動読み取り処理
     function processQRImage(input) {
       if (!input.files || !input.files[0]) return;
+      
+      const uploadText = document.getElementById('upload-text');
+      uploadText.textContent = "解析中...";
+
       const reader = new FileReader();
       reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
           const canvas = document.getElementById('qr-canvas');
           const ctx = canvas.getContext('2d');
-          canvas.width = img.width; canvas.height = img.height;
-          ctx.drawImage(img, 0, 0, img.width, img.height);
-          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const code = jsQR(imageData.data, imageData.width, imageData.height);
+          
+          // リサイズ処理（解析精度向上）
+          let width = img.width;
+          let height = img.height;
+          const maxDimension = 800; // 最適な解析解像度
 
-          if (code) {
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const imageData = ctx.getImageData(0, 0, width, height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "dontInvert"
+          });
+
+          if (code && code.data) {
             try {
-              const payload = JSON.parse(code.data);
-              if ((payload.kyc === "Okekyc" || payload.kyc === "OK") && payload.romanName && payload.email && payload.password) {
-                currentUser.romanName = payload.romanName.toUpperCase();
-                currentUser.email = payload.email;
-                currentUser.password = payload.password;
+              let payload = {};
+              // JSON形式の場合と、改行区切り形式の場合の両方に対応
+              if (code.data.trim().startsWith('{')) {
+                payload = JSON.parse(code.data);
+              } else {
+                // 改行区切りテキスト（例: Okekyc\nTARO YAMADA\nemail\npassword）
+                const lines = code.data.split('\n').map(l => l.trim());
+                payload = {
+                  kyc: lines[0],
+                  romanName: lines[1],
+                  email: lines[2],
+                  password: lines[3]
+                };
+              }
 
-                // GASへアカウント自動作成リクエスト
+              const kycFlag = String(payload.kyc || "").toLowerCase();
+              const romanName = payload.romanName || payload.name || payload.HolderName;
+              const email = payload.email || payload.mail;
+              const password = payload.password || payload.pass;
+
+              if ((kycFlag === "okekyc" || kycFlag === "ok") && romanName && email) {
+                currentUser.romanName = String(romanName).toUpperCase();
+                currentUser.email = email;
+                currentUser.password = password || "123456";
+
+                uploadText.textContent = "通信中...";
+
+                // 口座開設APIへリクエスト
                 fetch(GAS_ENDPOINT, {
                   method: "POST",
                   body: JSON.stringify({
@@ -169,12 +214,28 @@
                     document.getElementById('section-mypage').style.display = 'block';
                     updateUserUI();
                     alert(`本人確認・口座開設が完了しました！\n口座番号: ${res.accountNumber}\n初期残高: 1円`);
-                  } else { alert(res.message); }
+                  } else {
+                    alert('口座作成エラー: ' + res.message);
+                    uploadText.textContent = "QRコード画像を選択";
+                  }
+                })
+                .catch(err => {
+                  alert('通信エラーが発生しました。インターネット接続とURLをご確認ください。');
+                  uploadText.textContent = "QRコード画像を選択";
                 });
 
-              } else { alert('QRコードのデータ形式が不正です。'); }
-            } catch(err) { alert('CoreBank専用のQRコードを選択してください。'); }
-          } else { alert('QRコードを読み取れませんでした。'); }
+              } else {
+                alert(`QRコードのデータ構造が不完全です。\n読み取り結果:\n${code.data}`);
+                uploadText.textContent = "QRコード画像を選択";
+              }
+            } catch(err) {
+              alert(`QRデータ解析エラー:\n${code.data}`);
+              uploadText.textContent = "QRコード画像を選択";
+            }
+          } else {
+            alert('画像からQRコードを検出できませんでした。明るく鮮明な画像を選択してください。');
+            uploadText.textContent = "QRコード画像を選択";
+          }
         };
         img.src = e.target.result;
       };
@@ -204,7 +265,10 @@
       .then(list => {
         const container = document.getElementById('search-results');
         container.innerHTML = "";
-        if (list.length === 0) { container.innerHTML = "<div style='font-size:0.75rem; color:red;'>該当する名義が見つかりません</div>"; return; }
+        if (!list || list.length === 0) {
+          container.innerHTML = "<div style='font-size:0.75rem; color:red;'>該当する名義が見つかりません</div>";
+          return;
+        }
         list.forEach(u => {
           const div = document.createElement('div');
           div.style.cssText = "padding:6px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:4px; margin-bottom:4px; font-size:0.75rem; cursor:pointer;";
@@ -212,6 +276,9 @@
           div.onclick = () => { document.getElementById('target-acc-num').value = u.accountNumber; };
           container.appendChild(div);
         });
+      })
+      .catch(err => {
+        alert("検索時に通信エラーが発生しました。");
       });
     }
 
@@ -250,6 +317,10 @@
               updateUserUI();
               alert(`送金完了！ 0.7%の利子（+${res.interestAdded}円）が残高に還元されました。`);
             } else { alert(res.message); }
+          })
+          .catch(err => {
+            modal.style.display = 'none';
+            alert('送金実行時に通信エラーが発生しました。');
           });
         }
       }, 1000);
