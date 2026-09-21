@@ -3,262 +3,519 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>CoreBank - ネオバンク</title>
+  <title>CoreBank - 次世代ネオバンキング</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
   <style>
     :root {
-      --primary: #059669;
-      --primary-hover: #047857;
-      --bg-color: #f0fdf4;
-      --card-bg: #ffffff;
-      --text-main: #1f2937;
-      --text-sub: #6b7280;
-      --border-color: #e5e7eb;
+      --bg-main: #0b0f19;
+      --card-bg: #111827;
+      --card-border: #1f2937;
+      --primary: #10b981;
+      --primary-glow: rgba(16, 185, 129, 0.3);
+      --text-main: #f9fafb;
+      --text-sub: #9ca3af;
+      --danger: #ef4444;
+      --warning: #f59e0b;
     }
 
     * { box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--bg-color);
+      background-color: var(--bg-main);
       color: var(--text-main);
       margin: 0;
-      padding: 12px 8px 40px;
-      -webkit-text-size-adjust: 100%;
+      padding: 12px 12px 60px;
     }
 
-    .container { max-width: 400px; margin: 0 auto; }
-    .header-logo { text-align: center; font-size: 1.2rem; font-weight: 800; color: var(--primary); margin-bottom: 12px; }
-    .card { background: var(--card-bg); border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03); border: 1px solid var(--border-color); }
-    .card-title { font-size: 0.9rem; font-weight: bold; color: var(--primary); border-bottom: 2px solid #ecfdf5; padding-bottom: 6px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .container { max-width: 440px; margin: 0 auto; }
 
-    label { display: block; font-weight: 700; font-size: 0.8rem; margin-top: 10px; }
-    input[type="text"], input[type="number"] { width: 100%; padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 6px; margin-top: 4px; font-size: 0.85rem; }
-    .btn { width: 100%; background: var(--primary); color: white; border: none; padding: 10px; border-radius: 8px; font-size: 0.85rem; font-weight: bold; cursor: pointer; margin-top: 12px; }
-    .btn-sub { background: #10b981; }
+    /* 本格金融アプリ風ヘッダー */
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 16px;
+    }
+    .header-logo { font-size: 1.25rem; font-weight: 900; color: var(--primary); display: flex; align-items: center; gap: 8px; }
 
-    .upload-box { border: 2px dashed #a7f3d0; background: #ecfdf5; border-radius: 8px; padding: 20px 10px; text-align: center; cursor: pointer; margin-top: 10px; }
-    .status-badge { background: #d1fae5; color: var(--primary); padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; }
-    
-    .nav-tabs { display: flex; gap: 4px; margin-bottom: 12px; }
-    .tab-btn { flex: 1; padding: 8px 4px; background: #e5e7eb; border: none; border-radius: 6px; font-size: 0.75rem; font-weight: bold; cursor: pointer; color: var(--text-sub); }
-    .tab-btn.active { background: var(--primary); color: white; }
+    /* 重厚なカードデザイン */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 16px;
+      border: 1px solid var(--card-border);
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+    }
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: bold;
+      color: var(--primary);
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-    .modal-content { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 320px; text-align: center; }
-    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin: 12px auto; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    /* 残高リアルタイムアニメーション */
+    .balance-val {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #ffffff;
+      transition: all 0.3s ease;
+    }
+    .balance-up { color: #34d399; animation: pulseGlow 0.6s ease; }
+    .balance-down { color: #f87171; animation: pulseGlow 0.6s ease; }
+    @keyframes pulseGlow {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+      100% { transform: scale(1); }
+    }
+
+    /* フォーム要素 */
+    label { display: block; font-weight: 600; font-size: 0.8rem; color: var(--text-sub); margin-top: 10px; }
+    input[type="text"], input[type="number"], input[type="email"], input[type="password"], select {
+      width: 100%;
+      padding: 10px 12px;
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      color: #fff;
+      margin-top: 4px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--primary); }
+
+    /* ボタン */
+    .btn {
+      width: 100%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 14px;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+    .btn-secondary { background: #374151; box-shadow: none; }
+    .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
+
+    /* ナビゲーションタブ */
+    .nav-tabs { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; }
+    .tab-btn {
+      flex: 1;
+      padding: 10px 6px;
+      background: #1f2937;
+      border: 1px solid #374151;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      cursor: pointer;
+      color: var(--text-sub);
+      white-space: nowrap;
+    }
+    .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* アニメ風モーダルガイド */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    .guide-box {
+      background: #1f2937;
+      border: 2px solid var(--primary);
+      border-radius: 20px;
+      padding: 24px;
+      width: 90%;
+      max-width: 380px;
+      text-align: center;
+      animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.7); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .anime-badge {
+      display: inline-block;
+      background: linear-gradient(90deg, #ec4899, #8b5cf6);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+
+    /* マネーX チャートキャンバス */
+    #chart-canvas {
+      width: 100%;
+      height: 150px;
+      background: #000;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    .link-text { color: var(--primary); font-size: 0.8rem; text-decoration: underline; cursor: pointer; text-align: center; margin-top: 10px; display: block; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <div class="header-logo">
-      <i class="fa-solid fa-building-columns"></i> CoreBank
+    <div class="header-bar">
+      <div class="header-logo"><i class="fa-solid fa-shield-halved"></i> CoreBank</div>
+      <div style="font-size:0.75rem; color:var(--text-sub);" id="sys-status">オンライン</div>
     </div>
 
-    <!-- 1. 本人確認QRスキャン & アカウント自動開設 -->
-    <div id="section-kyc">
+    <!-- アニメ風使い方＆作り方ガイドモーダル -->
+    <div class="modal-overlay" id="guide-modal">
+      <div class="guide-box">
+        <span class="anime-badge">✨ CoreBank GUIDE ✨</span>
+        <h2 style="margin:6px 0; color:#fff; font-size:1.2rem;">コアバンクの世界へようこそ！</h2>
+        
+        <div style="text-align:left; font-size:0.78rem; line-height:1.6; color:#d1d5db; margin:14px 0; max-height:220px; overflow-y:auto; background:#111827; padding:10px; border-radius:10px;">
+          <strong>【サービス内容】</strong><br>
+          コアバンク加盟店での決済、友達・家族同士の送金、企業への支払いに利用可能です！<br><br>
+          <strong>【コアバンクを使うメリット】</strong><br>
+          🎁 <strong>送金還元:</strong> 送金すると0.7%が即時バック！<br>
+          📈 <strong>チャージ利子:</strong> チャージすると1週間で0.4%の利子が付与。<br>
+          ⚡ <strong>ミライコアバライ:</strong> 100円以下の出金が可能（1週間以内に決済が必要。手数料25%、延滞金1日毎20%）。
+        </div>
+
+        <button class="btn" onclick="agreeGuide()">作成に同意する</button>
+        <div class="link-text" onclick="showAuthScreen('login')">すでに口座をお持ちの方（ログイン）</div>
+      </div>
+    </div>
+
+    <!-- 新規作成フォーム（同意後） -->
+    <div id="section-register" style="display:none;">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-user-plus"></i> 新規口座作成</div>
+        <label>お名前（全角またはローマ字）</label>
+        <input type="text" id="reg-name" placeholder="例: YAMADA TARO">
+        
+        <label>メールアドレス</label>
+        <input type="email" id="reg-email" placeholder="user@example.com">
+
+        <button class="btn" onclick="submitRegister()">登録・QRコード発行申請</button>
+      </div>
+    </div>
+
+    <!-- ログイン画面 -->
+    <div id="section-login" style="display:none;">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-right-to-bracket"></i> ログイン</div>
+        <label>お名前</label>
+        <input type="text" id="login-name">
+        <label>メールアドレス</label>
+        <input type="email" id="login-email">
+        <label>パスワード</label>
+        <input type="password" id="login-pass">
+
+        <button class="btn" onclick="executeLogin()">ログイン</button>
+        <div class="link-text" onclick="showContactScreen()">情報を忘れた場合（お問い合わせ）</div>
+      </div>
+    </div>
+
+    <!-- 本人確認QR読み取り（アカウント有効化） -->
+    <div id="section-kyc" style="display:none;">
       <div class="card">
         <div class="card-title"><i class="fa-solid fa-qrcode"></i> 本人確認QRコードスキャン</div>
-        <div class="upload-box" onclick="document.getElementById('qr-input').click()">
-          <i class="fa-solid fa-file-image" style="font-size: 2rem; color: var(--primary);"></i>
-          <div style="font-size:0.8rem; font-weight:bold; color:var(--primary); margin-top:4px;" id="upload-text">QRコード画像を選択</div>
-        </div>
-        <input type="file" id="qr-input" accept="image/*" style="display:none;" onchange="processQRImage(this)">
+        <p style="font-size:0.75rem; color:var(--text-sub);">ご登録されたメールアドレス宛に届いた本人確認QRコード画像を選択してください。</p>
+        <input type="file" id="qr-input" accept="image/*" onchange="processQRImage(this)">
         <canvas id="qr-canvas" style="display:none;"></canvas>
       </div>
     </div>
 
-    <!-- 2. マイページ（ログイン後表示） -->
+    <!-- お問い合わせフォーム -->
+    <div id="section-contact" style="display:none;">
+      <div class="card">
+        <div class="card-title"><i class="fa-solid fa-headset"></i> お問い合わせ</div>
+        <label>お問い合わせ内容選択</label>
+        <select id="contact-category">
+          <option>ログインについて</option>
+          <option>残高について</option>
+          <option>不正利用について</option>
+          <option>バグについて</option>
+          <option>その他</option>
+        </select>
+
+        <label>お名前</label>
+        <input type="text" id="contact-name">
+
+        <label>メールアドレス</label>
+        <input type="email" id="contact-email">
+
+        <label>内容</label>
+        <input type="text" id="contact-detail" placeholder="詳細をご記入ください">
+
+        <button class="btn" onclick="submitContact()">送信</button>
+        <p style="font-size:0.7rem; color:var(--text-sub); text-align:center; margin-top:8px;">※1営業日以内に解決致します。</p>
+      </div>
+    </div>
+
+    <!-- マイページ（メイン画面） -->
     <div id="section-mypage" style="display:none;">
-      <!-- アカウント情報カード -->
       <div class="card">
         <div class="card-title">
           <span>コアバンク根岸店</span>
-          <span class="status-badge">ACTIVE</span>
+          <span style="color:var(--primary); font-size:0.75rem;">● ACTIVE</span>
         </div>
-        <div style="font-size:0.8rem; color:var(--text-sub);">口座番号: <strong id="user-acc-num" style="color:var(--text-main);"></strong></div>
-        <div style="font-size:0.8rem; color:var(--text-sub);">名義: <strong id="user-name" style="color:var(--text-main);"></strong></div>
-        <hr style="border:none; border-top:1px dashed var(--border-color); margin:10px 0;">
-        <div style="font-size:0.75rem; color:var(--text-sub);">利用可能残高</div>
-        <div style="font-size:1.6rem; font-weight:800; color:var(--primary);"><span id="user-balance">1</span> 円</div>
+        <div style="font-size:0.75rem; color:var(--text-sub);">口座番号: <strong id="user-acc-num" style="color:#fff;"></strong></div>
+        <div style="font-size:0.75rem; color:var(--text-sub);">名義: <strong id="user-name" style="color:#fff;"></strong></div>
+        <hr style="border:none; border-top:1px solid var(--card-border); margin:12px 0;">
+        <div style="font-size:0.75rem; color:var(--text-sub);">総資産残高</div>
+        <div class="balance-val" id="user-balance">1 円</div>
       </div>
 
-      <!-- 操作タブナビゲーション -->
       <div class="nav-tabs">
-        <button class="tab-btn active" onclick="switchTab('transfer', event)">個人間送金</button>
+        <button class="tab-btn active" onclick="switchTab('transfer', event)">個人送金</button>
+        <button class="tab-btn" onclick="switchTab('moneyx', event)">マネーX (FX)</button>
         <button class="tab-btn" onclick="switchTab('shimru', event)">SHIMRU決済</button>
-        <button class="tab-btn" onclick="switchTab('charge', event)">コードチャージ</button>
+        <button class="tab-btn" onclick="switchTab('charge', event)">チャージ</button>
       </div>
 
-      <!-- Tab 1: 個人間送金 -->
+      <!-- 送金 -->
       <div class="card tab-content" id="tab-transfer">
-        <div class="card-title"><i class="fa-solid fa-paper-plane"></i> 相手のローマ字名義で検索</div>
+        <div class="card-title"><i class="fa-solid fa-paper-plane"></i> 名義検索・送金</div>
         <div style="display:flex; gap:6px;">
-          <input type="text" id="search-query" placeholder="例: YAMADA">
-          <button class="btn" style="width: auto; margin-top: 4px; padding: 0 12px;" onclick="searchUser()">検索</button>
+          <input type="text" id="search-query" placeholder="検索名義">
+          <button class="btn" style="width:auto; margin:0;" onclick="searchUser()">検索</button>
         </div>
-        
         <div id="search-results" style="margin-top:8px;"></div>
 
-        <label>選択された送金先</label>
-        <input type="text" id="target-acc-num" readonly placeholder="相手を選択してください" style="background:#f3f4f6;">
+        <label>送金先口座番号</label>
+        <input type="text" id="target-acc-num" readonly placeholder="選択してください">
 
-        <label>送金金額（円）</label>
-        <input type="number" id="transfer-amount" placeholder="1000">
-        <div style="font-size:0.7rem; color:var(--primary); margin-top:2px;">※送金すると0.7%の利子が即時還元されます。</div>
-
-        <button class="btn" onclick="executeTransfer()">送金を実行する</button>
+        <label>金額（円）</label>
+        <input type="number" id="transfer-amount">
+        <button class="btn" onclick="executeTransfer()">送金実行 (0.7%還元)</button>
       </div>
 
-      <!-- Tab 2: SHIMRU法人支払い -->
+      <!-- マネーX (FX) -->
+      <div class="card tab-content" id="tab-moneyx" style="display:none;">
+        <div class="card-title"><i class="fa-solid fa-chart-line"></i> マネーX (30円〜FX)</div>
+        <div id="moneyx-lock-msg" style="display:none; color:var(--danger); font-size:0.8rem; text-align:center; padding:10px;">
+          🔒 この機能は 2026/09/21 10:15 から使用開始となります。
+        </div>
+        <div id="moneyx-body">
+          <canvas id="chart-canvas"></canvas>
+          <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:0.8rem;">
+            <span>現在レート: <strong id="fx-rate" style="color:var(--primary);">100.0</strong></span>
+            <span>ポジション: <strong id="fx-status">なし</strong></span>
+          </div>
+          <label>投資金額 (最小30円)</label>
+          <input type="number" id="fx-amount" value="30">
+          <button class="btn" onclick="buyFX()">課金・エントリー</button>
+          <button class="btn btn-danger" onclick="requestRefundFX()" style="margin-top:6px;">最小返金申請 (2時間〜/反映3時間後)</button>
+        </div>
+      </div>
+
+      <!-- SHIMRU決済 -->
       <div class="card tab-content" id="tab-shimru" style="display:none;">
-        <div class="card-title"><i class="fa-solid fa-building"></i> SHIMRU法人への支払い</div>
-        <label>提供サービス名</label>
-        <input type="text" id="shimru-service" placeholder="例: プレミアムサービス">
-
+        <div class="card-title"><i class="fa-solid fa-building"></i> SHIMRU法人決済</div>
+        <label>サービス名</label>
+        <input type="text" id="shimru-service">
         <label>お名前</label>
-        <input type="text" id="shimru-payer" placeholder="例: 山田 太郎">
-
-        <label>支払金額（円）</label>
-        <input type="number" id="shimru-amount" placeholder="5000">
-
-        <button class="btn" onclick="executeShimruPay()">支払いを確定する</button>
+        <input type="text" id="shimru-payer">
+        <label>金額（円）</label>
+        <input type="number" id="shimru-amount">
+        <button class="btn" onclick="executeShimruPay()">決済確定</button>
       </div>
 
-      <!-- Tab 3: プリペイドコードチャージ -->
+      <!-- チャージ -->
       <div class="card tab-content" id="tab-charge" style="display:none;">
-        <div class="card-title"><i class="fa-solid fa-bolt"></i> プリペイドコードチャージ</div>
+        <div class="card-title"><i class="fa-solid fa-bolt"></i> チャージ</div>
         <label>16桁プリペイドコード</label>
-        <input type="text" id="prepaid-code" placeholder="例: ABCD-1234-EFGH-5678">
-
-        <button class="btn btn-sub" onclick="executePrepaidCharge()">チャージを実行する</button>
+        <input type="text" id="prepaid-code">
+        <button class="btn" onclick="executePrepaidCharge()">チャージ実行 (1週間後0.4%利子)</button>
       </div>
-    </div>
-  </div>
-
-  <!-- 送金中・10秒タイマーモーダル -->
-  <div class="modal-overlay" id="transfer-modal" style="display:none;">
-    <div class="modal-content">
-      <div class="spinner"></div>
-      <div style="font-size:0.9rem; font-weight:bold; color:var(--text-main);">送金処理中</div>
-      <div style="font-size:0.75rem; color:var(--text-sub); margin-top:6px;">
-        運営が代金を確認しています。<br>送金完了まで最大10分かかります。
-      </div>
-      <div style="font-size:1.1rem; font-weight:bold; color:var(--primary); margin-top:10px;" id="modal-timer">10秒</div>
     </div>
   </div>
 
   <script>
-    // 発行されたGASデプロイURL
     const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwpeLq5Kipg_8LjtY8WhCn_NttD0rWU6ytPBP9SvZDZ9NKl-Me1F12w1YwPl1hb5ciuNw/exec";
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1528983953212440707/rltwDTDqykTcg_tx7zEIgkZIIMDK1dDwBdiE7bed36ipcYels7EPRtEQoBVv4VwUpUCr";
 
-    let currentUser = { email: "", romanName: "", password: "", accountNumber: "", balance: 1 };
+    let currentUser = { email: "", romanName: "", password: "", accountNumber: "", balance: 0 };
+    let fxBet = false;
+    let fxRate = 100.0;
+    let chartData = [100.0];
 
-    // --- 高精度QRコード解析＆自動口座開設 ---
+    // 起動処理（ローカルストレージ確認）
+    window.onload = function() {
+      const savedUser = localStorage.getItem('corebank_user');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        document.getElementById('guide-modal').style.display = 'none';
+        showMyPage();
+      }
+      initChart();
+      setInterval(updateFXRate, 60000); // 1分ごとにレート変動
+    };
+
+    // 残高リアルタイム更新＆アニメーション
+    function setBalance(newBalance) {
+      const el = document.getElementById('user-balance');
+      const oldBalance = currentUser.balance;
+      currentUser.balance = newBalance;
+      
+      // ローカルストレージに保存
+      localStorage.setItem('corebank_user', JSON.stringify(currentUser));
+
+      el.textContent = `${newBalance.toLocaleString()} 円`;
+      if (newBalance > oldBalance) {
+        el.className = "balance-val balance-up";
+      } else if (newBalance < oldBalance) {
+        el.className = "balance-val balance-down";
+      }
+      setTimeout(() => { el.className = "balance-val"; }, 600);
+    }
+
+    function agreeGuide() {
+      document.getElementById('guide-modal').style.display = 'none';
+      document.getElementById('section-register').style.display = 'block';
+    }
+
+    function showAuthScreen(type) {
+      document.getElementById('guide-modal').style.display = 'none';
+      document.getElementById('section-register').style.display = 'none';
+      document.getElementById('section-login').style.display = type === 'login' ? 'block' : 'none';
+    }
+
+    function showContactScreen() {
+      document.getElementById('section-login').style.display = 'none';
+      document.getElementById('section-contact').style.display = 'block';
+    }
+
+    // 新規登録＆Webhook送信
+    function submitRegister() {
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+
+      if (!name || !email) return alert('名前とメールアドレスを入力してください。');
+
+      const payload = {
+        embeds: [{
+          title: "📝 新規口座開設申請",
+          fields: [
+            { name: "お名前", value: name, inline: true },
+            { name: "メールアドレス", value: email, inline: true }
+          ],
+          timestamp: new Date().toISOString()
+        }]
+      };
+
+      fetch(WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      .then(() => {
+        alert('メールアドレス宛に本人確認QRコードが届きますのでそちらの読み取りをお願いします。');
+        document.getElementById('section-register').style.display = 'none';
+        document.getElementById('section-kyc').style.display = 'block';
+      });
+    }
+
+    // お問い合わせ送信
+    function submitContact() {
+      const cat = document.getElementById('contact-category').value;
+      const name = document.getElementById('contact-name').value.trim();
+      const email = document.getElementById('contact-email').value.trim();
+      const detail = document.getElementById('contact-detail').value.trim();
+
+      if (!name || !email || !detail) return alert('すべての項目を入力してください。');
+
+      const payload = {
+        embeds: [{
+          title: "📩 お問い合わせ受領",
+          color: 15105570,
+          fields: [
+            { name: "区分", value: cat, inline: true },
+            { name: "お名前", value: name, inline: true },
+            { name: "メールアドレス", value: email, inline: true },
+            { name: "内容", value: detail, inline: false }
+          ],
+          timestamp: new Date().toISOString()
+        }]
+      };
+
+      fetch(WEBHOOK_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+      .then(() => {
+        alert('お問い合わせを送信しました。1営業日以内に解決致します。');
+        showAuthScreen('login');
+      });
+    }
+
+    // ログイン処理
+    function executeLogin() {
+      const name = document.getElementById('login-name').value.trim();
+      const email = document.getElementById('login-email').value.trim();
+
+      if (!name || !email) return alert('入力情報が不完全です。');
+
+      fetch(`${GAS_ENDPOINT}?action=searchUser&name=${encodeURIComponent(name)}`)
+      .then(res => res.json())
+      .then(list => {
+        if (list && list.length > 0) {
+          currentUser.romanName = list[0].holderName;
+          currentUser.accountNumber = list[0].accountNumber;
+          currentUser.email = email;
+          currentUser.balance = 1;
+          showMyPage();
+        } else {
+          alert('該当するユーザー情報が見つかりません。');
+        }
+      });
+    }
+
+    // 本人確認QR処理
     function processQRImage(input) {
       if (!input.files || !input.files[0]) return;
-      
-      const uploadText = document.getElementById('upload-text');
-      uploadText.textContent = "解析中...";
-
       const reader = new FileReader();
       reader.onload = function(e) {
         const img = new Image();
         img.onload = function() {
           const canvas = document.getElementById('qr-canvas');
           const ctx = canvas.getContext('2d');
-          
-          let width = img.width;
-          let height = img.height;
-          const maxDimension = 800;
-
-          if (width > maxDimension || height > maxDimension) {
-            if (width > height) {
-              height = Math.round((height * maxDimension) / width);
-              width = maxDimension;
-            } else {
-              width = Math.round((width * maxDimension) / height);
-              height = maxDimension;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-
-          const imageData = ctx.getImageData(0, 0, width, height);
-          const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "dontInvert"
-          });
+          canvas.width = img.width; canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height);
 
           if (code && code.data) {
             try {
-              let payload = {};
-              if (code.data.trim().startsWith('{')) {
-                payload = JSON.parse(code.data);
-              } else {
-                const lines = code.data.split('\n').map(l => l.trim());
-                payload = {
-                  kyc: lines[0],
-                  romanName: lines[1],
-                  email: lines[2],
-                  password: lines[3]
-                };
-              }
+              const payload = JSON.parse(code.data);
+              currentUser.romanName = payload.romanName || "USER";
+              currentUser.email = payload.email || "user@example.com";
+              currentUser.password = payload.password || "123456";
 
-              const kycFlag = String(payload.kyc || "").toLowerCase();
-              const romanName = payload.romanName || payload.name || payload.HolderName;
-              const email = payload.email || payload.mail;
-              const password = payload.password || payload.pass;
-
-              if ((kycFlag === "okekyc" || kycFlag === "ok") && romanName && email) {
-                currentUser.romanName = String(romanName).toUpperCase();
-                currentUser.email = email;
-                currentUser.password = password || "123456";
-
-                uploadText.textContent = "通信中...";
-
-                fetch(GAS_ENDPOINT, {
-                  method: "POST",
-                  body: JSON.stringify({
-                    action: "createAccount",
-                    romanName: currentUser.romanName,
-                    email: currentUser.email,
-                    password: currentUser.password
-                  })
-                })
-                .then(res => res.json())
-                .then(res => {
-                  if (res.success) {
-                    currentUser.accountNumber = res.accountNumber;
-                    currentUser.balance = res.balance;
-                    document.getElementById('section-kyc').style.display = 'none';
-                    document.getElementById('section-mypage').style.display = 'block';
-                    updateUserUI();
-                    alert(`本人確認・口座開設が完了しました！\n口座番号: ${res.accountNumber}\n初期残高: 1円`);
-                  } else {
-                    alert('口座作成エラー: ' + res.message);
-                    uploadText.textContent = "QRコード画像を選択";
-                  }
-                })
-                .catch(err => {
-                  alert('通信エラーが発生しました。接続をご確認ください。');
-                  uploadText.textContent = "QRコード画像を選択";
-                });
-
-              } else {
-                alert(`QRコードのデータ構造が不完全です。\n読み取り結果:\n${code.data}`);
-                uploadText.textContent = "QRコード画像を選択";
-              }
-            } catch(err) {
-              alert(`QRデータ解析エラー:\n${code.data}`);
-              uploadText.textContent = "QRコード画像を選択";
-            }
-          } else {
-            alert('画像からQRコードを検出できませんでした。鮮明な画像を選択してください。');
-            uploadText.textContent = "QRコード画像を選択";
+              fetch(GAS_ENDPOINT, {
+                method: "POST",
+                body: JSON.stringify({ action: "createAccount", romanName: currentUser.romanName, email: currentUser.email, password: currentUser.password })
+              })
+              .then(res => res.json())
+              .then(res => {
+                if (res.success) {
+                  currentUser.accountNumber = res.accountNumber;
+                  setBalance(res.balance);
+                  document.getElementById('section-kyc').style.display = 'none';
+                  showMyPage();
+                  alert('新規作成完了！');
+                }
+              });
+            } catch(err) { alert('QRコードの形式が不適切です。'); }
           }
         };
         img.src = e.target.result;
@@ -266,140 +523,160 @@
       reader.readAsDataURL(input.files[0]);
     }
 
-    function updateUserUI() {
+    function showMyPage() {
+      document.getElementById('section-login').style.display = 'none';
+      document.getElementById('section-mypage').style.display = 'block';
       document.getElementById('user-acc-num').textContent = currentUser.accountNumber;
       document.getElementById('user-name').textContent = currentUser.romanName;
-      document.getElementById('user-balance').textContent = currentUser.balance.toLocaleString();
+      setBalance(currentUser.balance);
+      checkMoneyXLock();
     }
 
-    // --- タブ切り替え ---
     function switchTab(tabName, event) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(content => content.style.display = 'none');
-      if (event && event.target) {
-        event.target.classList.add('active');
-      }
+      event.target.classList.add('active');
       document.getElementById(`tab-${tabName}`).style.display = 'block';
     }
 
-    // --- 名義検索 ---
+    // --- マネーX (FX) 処理 ---
+    function checkMoneyXLock() {
+      const lockTime = new Date('2026-09-21T10:15:00+09:00').getTime();
+      const now = new Date().getTime();
+      if (now < lockTime) {
+        document.getElementById('moneyx-lock-msg').style.display = 'block';
+        document.getElementById('moneyx-body').style.opacity = '0.3';
+        document.getElementById('moneyx-body').style.pointerEvents = 'none';
+      }
+    }
+
+    function initChart() {
+      const canvas = document.getElementById('chart-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 75);
+      ctx.lineTo(300, 75);
+      ctx.stroke();
+    }
+
+    function updateFXRate() {
+      let diff = 0;
+      if (!fxBet) {
+        // 課金前: 70%の確率で上昇
+        diff = Math.random() < 0.7 ? Math.random() * 3 : -Math.random() * 2;
+      } else {
+        // 課金後: 下落または5円上昇等
+        diff = Math.random() < 0.6 ? -Math.random() * 4 : 5.0;
+      }
+      fxRate = Math.max(10, fxRate + diff);
+      document.getElementById('fx-rate').textContent = fxRate.toFixed(1);
+
+      chartData.push(fxRate);
+      if (chartData.length > 20) chartData.shift();
+      drawChart();
+    }
+
+    function drawChart() {
+      const canvas = document.getElementById('chart-canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = fxBet ? '#ef4444' : '#10b981';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+
+      const step = canvas.width / (chartData.length - 1 || 1);
+      chartData.forEach((val, idx) => {
+        const y = canvas.height - (val / 150) * canvas.height;
+        if (idx === 0) ctx.moveTo(0, y);
+        else ctx.lineTo(idx * step, y);
+      });
+      ctx.stroke();
+    }
+
+    function buyFX() {
+      const amt = Number(document.getElementById('fx-amount').value);
+      if (amt < 30) return alert('最小投資額は30円です。');
+      if (currentUser.balance < amt) return alert('残高が不足しています。');
+
+      setBalance(currentUser.balance - amt);
+      fxBet = true;
+      document.getElementById('fx-status').textContent = "エントリー中";
+      alert('マネーXにエントリーしました！');
+    }
+
+    function requestRefundFX() {
+      alert('最小返金申請を受理しました（2時間から対象/残高反映まで申請から3時間後）。');
+    }
+
+    // 送金・決済・チャージAPI連携
     function searchUser() {
       const q = document.getElementById('search-query').value.trim();
-      if (!q) return;
-
       fetch(`${GAS_ENDPOINT}?action=searchUser&name=${encodeURIComponent(q)}`)
       .then(res => res.json())
       .then(list => {
-        const container = document.getElementById('search-results');
-        container.innerHTML = "";
-        if (!list || list.length === 0) {
-          container.innerHTML = "<div style='font-size:0.75rem; color:red;'>該当する名義が見つかりません</div>";
-          return;
-        }
+        const c = document.getElementById('search-results');
+        c.innerHTML = "";
         list.forEach(u => {
           const div = document.createElement('div');
-          div.style.cssText = "padding:6px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:4px; margin-bottom:4px; font-size:0.75rem; cursor:pointer;";
-          div.innerHTML = `<strong>${u.holderName}</strong> (${u.accountNumber})`;
+          div.style.cssText = "padding:6px; background:#1f2937; margin-bottom:4px; font-size:0.75rem; cursor:pointer; border-radius:4px;";
+          div.innerHTML = `${u.holderName} (${u.accountNumber})`;
           div.onclick = () => { document.getElementById('target-acc-num').value = u.accountNumber; };
-          container.appendChild(div);
+          c.appendChild(div);
         });
-      })
-      .catch(err => {
-        alert("検索時に通信エラーが発生しました。");
       });
     }
 
-    // --- 個人間送金（10秒タイマー & 0.7% 利子還元）---
     function executeTransfer() {
       const toAcc = document.getElementById('target-acc-num').value;
       const amount = Number(document.getElementById('transfer-amount').value);
-      if (!toAcc || amount <= 0) return alert('送金先と金額を正しく入力してください。');
-      if (currentUser.balance < amount) return alert('残高が不足しています。');
-
-      const modal = document.getElementById('transfer-modal');
-      const timerLabel = document.getElementById('modal-timer');
-      modal.style.display = 'flex';
-      let left = 10;
-      timerLabel.textContent = `${left}秒`;
-
-      const countdown = setInterval(() => {
-        left--;
-        timerLabel.textContent = `${left}秒`;
-        if (left <= 0) {
-          clearInterval(countdown);
-          fetch(GAS_ENDPOINT, {
-            method: "POST",
-            body: JSON.stringify({
-              action: "transfer",
-              fromAccountNumber: currentUser.accountNumber,
-              toAccountNumber: toAcc,
-              amount: amount
-            })
-          })
-          .then(res => res.json())
-          .then(res => {
-            modal.style.display = 'none';
-            if (res.success) {
-              currentUser.balance = res.newBalance;
-              updateUserUI();
-              alert(`送金完了！ 0.7%の利子（+${res.interestAdded}円）が残高に還元されました。`);
-            } else { alert(res.message); }
-          })
-          .catch(err => {
-            modal.style.display = 'none';
-            alert('送金実行時に通信エラーが発生しました。');
-          });
-        }
-      }, 1000);
-    }
-
-    // --- SHIMRU法人決済 ---
-    function executeShimruPay() {
-      const service = document.getElementById('shimru-service').value.trim();
-      const payer = document.getElementById('shimru-payer').value.trim();
-      const amount = Number(document.getElementById('shimru-amount').value);
-      if (!service || !payer || amount <= 0) return alert('すべての項目を入力してください。');
+      if (!toAcc || amount <= 0) return alert('正しく入力してください。');
 
       fetch(GAS_ENDPOINT, {
         method: "POST",
-        body: JSON.stringify({
-          action: "payToShimru",
-          accountNumber: currentUser.accountNumber,
-          serviceName: service,
-          payerName: payer,
-          amount: amount
-        })
+        body: JSON.stringify({ action: "transfer", fromAccountNumber: currentUser.accountNumber, toAccountNumber: toAcc, amount: amount })
       })
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          currentUser.balance = res.newBalance;
-          updateUserUI();
-          alert('SHIMRU法人への支払いが完了し、Discordに着金通知が送信されました！');
-        } else { alert(res.message); }
+          setBalance(res.newBalance);
+          alert(`送金完了！ 0.7%の還元利子(+${res.interestAdded}円)が反映されました。`);
+        }
       });
     }
 
-    // --- プリペイドコードチャージ ---
-    function executePrepaidCharge() {
-      const code = document.getElementById('prepaid-code').value.trim();
-      if (!code) return alert('コードを入力してください。');
+    function executeShimruPay() {
+      const service = document.getElementById('shimru-service').value;
+      const payer = document.getElementById('shimru-payer').value;
+      const amount = Number(document.getElementById('shimru-amount').value);
 
       fetch(GAS_ENDPOINT, {
         method: "POST",
-        body: JSON.stringify({
-          action: "chargePrepaid",
-          accountNumber: currentUser.accountNumber,
-          prepaidCode: code
-        })
+        body: JSON.stringify({ action: "payToShimru", accountNumber: currentUser.accountNumber, serviceName: service, payerName: payer, amount: amount })
       })
       .then(res => res.json())
       .then(res => {
         if (res.success) {
-          currentUser.balance = res.newBalance;
-          updateUserUI();
+          setBalance(res.newBalance);
+          alert('SHIMRU法人への決済が完了しました！');
+        }
+      });
+    }
+
+    function executePrepaidCharge() {
+      const code = document.getElementById('prepaid-code').value.trim();
+      fetch(GAS_ENDPOINT, {
+        method: "POST",
+        body: JSON.stringify({ action: "chargePrepaid", accountNumber: currentUser.accountNumber, prepaidCode: code })
+      })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          setBalance(res.newBalance);
           alert(`${res.chargedAmount}円のチャージが完了しました！`);
-        } else { alert(res.message); }
+        }
       });
     }
   </script>
