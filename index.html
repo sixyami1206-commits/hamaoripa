@@ -3,108 +3,242 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoreBank - ネットバンキング</title>
+  <title>CoreBank - 次世代フルスペック・ネットバンキングシステム (v5 Premium)</title>
   <style>
     :root {
-      --primary: #0f172a;
-      --accent: #2563eb;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text: #1e293b;
-      --text-muted: #64748b;
-      --danger: #ef4444;
-      --success: #10b981;
+      --bg-gradient: linear-gradient(135deg, #1a1c2e 0%, #0f101d 50%, #182232 100%);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --accent-blue: #00d2ff;
+      --accent-indigo: #6c5ce7;
+      --accent-pink: #ff7675;
+      --accent-green: #00b894;
+      --accent-gold: #fdcb6e;
+      --text-main: #ffffff;
+      --text-sub: #a0aec0;
+      --input-bg: rgba(0, 0, 0, 0.25);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 60px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif; }
+    
+    body {
+      background: var(--bg-gradient);
+      background-attachment: fixed;
+      color: var(--text-main);
+      padding-bottom: 60px;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
 
+    /* ヘッダー */
     header {
-      background: var(--primary);
-      color: white;
-      padding: 16px 20px;
+      background: rgba(15, 16, 29, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 16px 28px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: 1px; }
+    .logo-area { display: flex; align-items: center; gap: 12px; }
+    .logo-badge {
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
+      color: #fff;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      letter-spacing: 1px;
+      box-shadow: 0 0 12px rgba(0,210,255,0.4);
+    }
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(to right, #00d2ff, #3a7bd5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-    .container { max-width: 600px; margin: 20px auto; padding: 0 16px; }
+    /* メインコンテナ */
+    .container { max-width: 960px; margin: 32px auto; padding: 0 20px; }
 
+    /* バナー */
+    .notice-banner {
+      background: linear-gradient(90deg, rgba(108, 92, 231, 0.15), rgba(0, 210, 255, 0.15));
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      color: #74b9ff;
+      padding: 16px 20px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+      backdrop-filter: blur(8px);
+      box-shadow: var(--glass-shadow);
+    }
+
+    /* カード */
     .card {
       background: var(--card-bg);
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--glass-shadow);
+    }
+    .card h2, .card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 18px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 10px;
+      color: #fff;
+      letter-spacing: 0.5px;
     }
 
-    .btn {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      background: var(--accent);
-      color: white;
+    /* 残高ボード */
+    .balance-card {
+      background: linear-gradient(135deg, rgba(108, 92, 231, 0.2) 0%, rgba(0, 210, 255, 0.1) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      padding: 28px;
+      text-align: center;
+      margin: 20px 0;
+      position: relative;
+    }
+    .balance-title { font-size: 0.95rem; color: var(--text-sub); }
+    .balance-amount {
+      font-size: 3.2rem;
+      font-weight: 800;
+      color: #55efc4;
+      margin: 10px 0;
+      text-shadow: 0 0 20px rgba(85, 239, 196, 0.3);
+    }
+    .status-badge {
+      display: inline-block;
+      background: rgba(0, 184, 148, 0.2);
+      border: 1px solid var(--accent-green);
+      color: #55efc4;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
       font-weight: bold;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: opacity 0.2s;
     }
-    .btn:hover { opacity: 0.9; }
-    .btn-secondary { background: #e2e8f0; color: var(--text); }
-    .btn-danger { background: var(--danger); }
 
+    /* グリッドレイアウト */
+    .grid-btns {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    /* ボタンデザイン */
+    .btn {
+      padding: 14px 18px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--accent-blue), #0984e3);
+      color: white;
+      transition: all 0.25s ease;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 210, 255, 0.5);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      box-shadow: none;
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+    .btn-green {
+      background: linear-gradient(135deg, var(--accent-green), #00887a);
+      box-shadow: 0 4px 15px rgba(0, 184, 148, 0.3);
+    }
+    .btn-purple {
+      background: linear-gradient(135deg, var(--accent-indigo), #4834d4);
+      box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+    }
+    .btn-gold {
+      background: linear-gradient(135deg, var(--accent-gold), #e17055);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
+    }
+
+    /* 入力フォーム */
+    label { display: block; font-size: 0.88rem; color: var(--text-sub); margin-top: 14px; margin-bottom: 6px; font-weight: 600; }
     input, select, textarea {
       width: 100%;
-      padding: 12px;
-      margin-top: 6px;
-      margin-bottom: 12px;
-      border: 1px solid #cbd5e1;
+      padding: 12px 16px;
+      background: var(--input-bg);
+      border: 1px solid var(--card-border);
       border-radius: 8px;
-      font-size: 1rem;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
     }
 
-    .notice-box {
-      background: #eff6ff;
-      border-left: 4px solid var(--accent);
-      padding: 12px;
-      border-radius: 4px;
-      font-size: 0.875rem;
-      color: #1e40af;
-      margin-bottom: 16px;
-      line-height: 1.5;
-    }
-
-    .balance-display {
-      font-size: 2rem;
-      font-weight: 800;
-      color: var(--primary);
-      margin: 10px 0;
-    }
-
-    /* モーダル表示 */
+    /* モーダル */
     .modal {
       display: none;
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
+      background: rgba(10, 11, 20, 0.8);
+      backdrop-filter: blur(8px);
       justify-content: center;
       align-items: center;
-      padding: 16px;
       z-index: 1000;
+      padding: 20px;
     }
     .modal-content {
-      background: white;
-      padding: 24px;
-      border-radius: 12px;
+      background: #151828;
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      padding: 28px;
       width: 100%;
-      max-width: 450px;
-      max-height: 90vh;
+      max-width: 520px;
+      max-height: 88vh;
       overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
     }
+
+    /* リスト構造 */
+    .user-list {
+      margin-top: 12px;
+      max-height: 160px;
+      overflow-y: auto;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      background: var(--input-bg);
+    }
+    .user-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--card-border);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+    .user-item:hover { background: rgba(0, 210, 255, 0.1); }
 
     .hidden { display: none !important; }
   </style>
@@ -112,132 +246,186 @@
 <body>
 
 <header>
-  <h1>CoreBank</h1>
-  <button id="logout-btn" class="btn btn-secondary hidden" onclick="logout()" style="width: auto; padding: 6px 12px; margin: 0;">ログアウト</button>
+  <div class="logo-area">
+    <h1>CoreBank</h1>
+    <span class="logo-badge">v5 Premium</span>
+  </div>
+  <button id="logout-btn" class="btn btn-secondary hidden" onclick="logout()" style="width:auto; padding: 6px 16px; font-size:0.85rem;">ログアウト</button>
 </header>
 
 <div class="container">
 
-  <!-- セキュリティ注意喚起バナー -->
-  <div class="notice-box">
-    <strong>【大切なお知らせ】</strong><br>
-    すべての操作時にご登録メールアドレス宛へ自動確認メールを送信しております。<br>
-    <strong>ご自身の操作ではない通知が届いた場合は、速やかにお問い合わせをお願いいたします。</strong>
+  <div class="notice-banner">
+    🔒 <strong>CoreBank 完全版セキュリティプロトコル稼働中</strong><br>
+    すべての取引（口座開設・送金・チャージ・トレード・企業決済）において、自動安全通知メールおよびリアルタイム監査Webhookが実行されます。
   </div>
 
-  <!-- 未ログイン画面（ログイン / 口座開設） -->
+  <!-- 未ログイン・認証エリア -->
   <div id="auth-section">
     <div class="card">
-      <h2>ログイン</h2>
+      <h2>🔑 ログイン</h2>
       <label>ローマ字名義 (例: TARO YAMADA)</label>
       <input type="text" id="login-name" placeholder="TARO YAMADA">
-      
-      <label>メールアドレス</label>
+      <label>ご登録メールアドレス</label>
       <input type="email" id="login-email" placeholder="example@email.com">
-      
       <label>パスワード</label>
       <input type="password" id="login-pass" placeholder="******">
-      
-      <button class="btn" onclick="submitLogin()">ログイン</button>
+      <button class="btn" onclick="submitLogin()" style="margin-top:16px;">ログイン実行</button>
     </div>
 
     <div class="card">
-      <h2>新規口座開設申請</h2>
+      <h2>📝 口座新規開設申請 (認証QRコード自動発行)</h2>
       <label>ローマ字名義 (例: TARO YAMADA)</label>
       <input type="text" id="reg-name" placeholder="TARO YAMADA">
-      
-      <label>メールアドレス (認証用QRコードが届きます)</label>
+      <label>メールアドレス (認証QRコード送信宛先)</label>
       <input type="email" id="reg-email" placeholder="example@email.com">
-      
-      <button class="btn" onclick="submitRegisterRequest()">申請を送信する</button>
+      <label>初期設定パスワード (省略時: 123456)</label>
+      <input type="password" id="reg-pass" placeholder="123456">
+      <button class="btn btn-green" onclick="submitRegisterRequest()" style="margin-top:16px;">口座開設を完了する</button>
     </div>
   </div>
 
-  <!-- ログイン後 マイページ -->
+  <!-- マイページエリア -->
   <div id="mypage-section" class="hidden">
     <div class="card">
-      <h3>口座情報</h3>
-      <p style="color: var(--text-muted);" id="user-name-display"></p>
-      <p style="font-family: monospace; font-weight: bold;" id="user-acc-display"></p>
-      
-      <h4 style="margin-top: 16px;">利用可能残高</h4>
-      <div class="balance-display" id="user-balance-display">¥0</div>
-      
-      <button class="btn" onclick="openModal('transfer-modal')">個人間送金</button>
-      <button class="btn btn-secondary" onclick="openModal('prepaid-modal')">プリペイドチャージ</button>
-      <button class="btn btn-secondary" onclick="openModal('mirai-modal')">ミライコアバライ (緊急)</button>
-    </div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h3 style="border:none; padding:0; margin-bottom:4px;" id="user-name-display">---</h3>
+          <p style="font-family:monospace; color:var(--accent-blue); font-size:0.95rem;" id="user-acc-display">4328-CIRE00000-SG00000</p>
+        </div>
+        <span class="status-badge" id="user-status-display">ACTIVE</span>
+      </div>
 
-    <div class="card">
-      <h3>サポート</h3>
-      <button class="btn btn-secondary" onclick="openModal('contact-modal')">お問い合わせ</button>
+      <div class="balance-card">
+        <div class="balance-title">利用可能残高 (リアルタイム同期)</div>
+        <div class="balance-amount" id="user-balance-display">¥0</div>
+        <button class="btn btn-secondary" onclick="syncBalance()" style="width:auto; display:inline-flex; padding: 6px 16px; font-size:0.85rem; margin-top:6px;">🔄 残高を手動更新</button>
+      </div>
+
+      <h3 style="margin-top:24px;">全機能ショートカット</h3>
+      <div class="grid-btns">
+        <button class="btn" onclick="openModal('transfer-modal')">💸 個人間送金 (0.7%還元)</button>
+        <button class="btn btn-secondary" onclick="openModal('prepaid-modal')">💳 プリペイドチャージ</button>
+        <button class="btn btn-gold" onclick="openModal('mirai-modal')">⚡ ミライコアバライ (即時)</button>
+        <button class="btn btn-purple" onclick="openModal('moneyx-modal')">📈 マネーX (トレード)</button>
+        <button class="btn btn-secondary" onclick="openModal('company-modal')">🏢 企業支払い (Sheet2)</button>
+        <button class="btn btn-secondary" onclick="openModal('search-user-modal')">🔍 名義口座検索</button>
+        <button class="btn btn-secondary" onclick="openModal('contact-modal')" style="grid-column: 1 / -1;">❓ お問い合わせ・不正報告</button>
+      </div>
     </div>
   </div>
 
 </div>
 
-<!-- 1. 送金モーダル -->
+<!-- モーダル1: 個人間送金 -->
 <div id="transfer-modal" class="modal">
   <div class="modal-content">
-    <h3>個人間送金</h3>
+    <h3>💸 個人間送金 (上限10,000円)</h3>
+    <p style="font-size:0.85rem; color:var(--text-sub);">※送金額の 0.7% が自動でポイント還元加算されます。</p>
+    
+    <label>送金相手の名義を検索 (ローマ字)</label>
+    <input type="text" id="search-user-input" placeholder="YAMADA など入力" oninput="searchUsersForTransfer()">
+    <div id="search-results-list" class="user-list hidden"></div>
+
     <label>送金先口座番号</label>
     <input type="text" id="transfer-to" placeholder="4328-CIRE00001-SG12345">
-    <label>送金額 (最大 10,000円)</label>
-    <input type="number" id="transfer-amount" max="10000" placeholder="1000">
-    <button class="btn" onclick="submitTransfer()">送金を確定する</button>
-    <button class="btn btn-secondary" onclick="closeModal('transfer-modal')">閉じる</button>
+    
+    <label>送金金額 (最大10,000円)</label>
+    <input type="number" id="transfer-amount" max="10000" min="1" placeholder="例: 1000">
+    
+    <button class="btn" onclick="submitTransfer()" style="margin-top:16px;">送金確定・実行</button>
+    <button class="btn btn-secondary" onclick="closeModal('transfer-modal')" style="margin-top:8px;">キャンセル</button>
   </div>
 </div>
 
-<!-- 2. プリペイドチャージモーダル -->
+<!-- モーダル2: プリペイドコードチャージ -->
 <div id="prepaid-modal" class="modal">
   <div class="modal-content">
-    <h3>プリペイドコードチャージ</h3>
-    <label>チャージコード</label>
-    <input type="text" id="prepaid-code" placeholder="XXXX-XXXX-XXXX-XXXX">
-    <button class="btn" onclick="submitPrepaidCharge()">チャージ実行</button>
-    <button class="btn btn-secondary" onclick="closeModal('prepaid-modal')">閉じる</button>
+    <h3>💳 プリペイドチャージ</h3>
+    <label>チャージコード入力 (ハイフン任意)</label>
+    <input type="text" id="prepaid-code" placeholder="例: PREP-1234-5678">
+    <button class="btn" onclick="submitPrepaidCharge()" style="margin-top:16px;">コード検証・チャージ</button>
+    <button class="btn btn-secondary" onclick="closeModal('prepaid-modal')" style="margin-top:8px;">閉じる</button>
   </div>
 </div>
 
-<!-- 3. ミライコアバライモーダル -->
+<!-- モーダル3: ミライコアバライ -->
 <div id="mirai-modal" class="modal">
   <div class="modal-content">
-    <h3>ミライコアバライ (緊急即時チャージ)</h3>
-    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px;">※最大100円まで即時チャージ可能です。（手数料25%）</p>
+    <h3>⚡ ミライコアバライ (緊急即時残高付与)</h3>
+    <p style="font-size:0.85rem; color:var(--text-sub);">緊急用少額チャージ機能です（最大100円まで）。</p>
     <label>チャージ希望額 (1円〜100円)</label>
     <input type="number" id="mirai-amount" max="100" min="1" value="100">
-    <button class="btn" onclick="submitMiraiCharge()">即時チャージ</button>
-    <button class="btn btn-secondary" onclick="closeModal('mirai-modal')">閉じる</button>
+    <button class="btn btn-gold" onclick="submitMiraiCharge()" style="margin-top:16px;">即時チャージ実行</button>
+    <button class="btn btn-secondary" onclick="closeModal('mirai-modal')" style="margin-top:8px;">閉じる</button>
   </div>
 </div>
 
-<!-- 4. お問い合わせモーダル -->
+<!-- モーダル4: マネーX -->
+<div id="moneyx-modal" class="modal">
+  <div class="modal-content">
+    <h3>📈 マネーX (トレード損益即時反映)</h3>
+    <p style="font-size:0.85rem; color:var(--text-sub);">トレードによる口座残高のプラス・マイナス変動を直接反映します。</p>
+    <label>変動損益額 (例: 500 または -300)</label>
+    <input type="number" id="moneyx-amount" placeholder="500 または -300">
+    <button class="btn btn-purple" onclick="submitMoneyX()" style="margin-top:16px;">損益を決済・反映</button>
+    <button class="btn btn-secondary" onclick="closeModal('moneyx-modal')" style="margin-top:8px;">閉じる</button>
+  </div>
+</div>
+
+<!-- モーダル5: 企業支払い -->
+<div id="company-modal" class="modal">
+  <div class="modal-content">
+    <h3>🏢 企業支払い照会・決済</h3>
+    <label>企業コード入力</label>
+    <input type="text" id="corp-code" placeholder="例: CORP1001">
+    <button class="btn btn-secondary" onclick="searchCompany()" style="margin-top:8px;">企業情報を照会</button>
+    
+    <div id="corp-info-area" class="hidden" style="margin-top:16px; padding:16px; background:var(--input-bg); border-radius:10px; border:1px solid var(--card-border);">
+      <p id="corp-name-text" style="font-weight:bold;"></p>
+      <p id="corp-amount-text" style="color:#55efc4; font-weight:bold; font-size:1.2rem; margin-top:4px;"></p>
+      <button class="btn btn-green" onclick="submitCompanyPay()" style="margin-top:12px;">支払いを確定する</button>
+    </div>
+    <button class="btn btn-secondary" onclick="closeModal('company-modal')" style="margin-top:8px;">閉じる</button>
+  </div>
+</div>
+
+<!-- モーダル6: 名義・口座番号検索機能 -->
+<div id="search-user-modal" class="modal">
+  <div class="modal-content">
+    <h3>🔍 口座名義検索</h3>
+    <label>ローマ字名義の一部を入力</label>
+    <input type="text" id="general-search-input" placeholder="TARO など" oninput="executeGeneralUserSearch()">
+    <div id="general-search-results" class="user-list" style="margin-top:12px;"></div>
+    <button class="btn btn-secondary" onclick="closeModal('search-user-modal')" style="margin-top:12px;">閉じる</button>
+  </div>
+</div>
+
+<!-- モーダル7: お問い合わせ -->
 <div id="contact-modal" class="modal">
   <div class="modal-content">
-    <h3>お問い合わせ</h3>
+    <h3>❓ お問い合わせ・不審操作通報</h3>
     <label>カテゴリー</label>
     <select id="contact-category">
-      <option value="身に覚えのない通知・不審な操作">身に覚えのない通知・不審な操作</option>
-      <option value="口座・残高について">口座・残高について</option>
-      <option value="その他のお問い合わせ">その他のお問い合わせ</option>
+      <option value="不審な操作の報告">不審な操作の報告・身に覚えがない通知</option>
+      <option value="残高・仕様について">残高・仕様について</option>
+      <option value="その他">その他のお問い合わせ</option>
     </select>
     <label>お名前</label>
-    <input type="text" id="contact-name" placeholder="TARO YAMADA">
-    <label>メールアドレス</label>
-    <input type="email" id="contact-email" placeholder="example@email.com">
-    <label>お問い合わせ内容</label>
-    <textarea id="contact-body" rows="4" placeholder="具体的な内容をご記入ください"></textarea>
-    <button class="btn" onclick="submitContact()">送信する</button>
-    <button class="btn btn-secondary" onclick="closeModal('contact-modal')">閉じる</button>
+    <input type="text" id="contact-name">
+    <label>ご返信先メールアドレス</label>
+    <input type="email" id="contact-email">
+    <label>お問い合わせ内容詳細</label>
+    <textarea id="contact-body" rows="4" placeholder="具体的な状況をご記入ください"></textarea>
+    <button class="btn" onclick="submitContact()" style="margin-top:16px;">送信する</button>
+    <button class="btn btn-secondary" onclick="closeModal('contact-modal')" style="margin-top:8px;">閉じる</button>
   </div>
 </div>
 
 <script>
-  // 指定されたGASエンドポイントURL
-  const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbwpeLq5Kipg_8LjtY8WhCn_NttD0rWU6ytPBP9SvZDZ9NKl-Me1F12w1YwPl1hb5ciuNw/exec";
-
+  const GAS_ENDPOINT = "https://script.google.com/macros/s/AKfycbyFRj6pZ3LOux6lpGPia5wHWq-MCiwUXzbPHSEH0BXZE9CGnWwGw9czNxosWiYo-UgczQ/exec";
   let currentUser = JSON.parse(localStorage.getItem('corebank_user') || 'null');
+  let currentCorpData = null;
 
   window.onload = function() {
     if (currentUser) {
@@ -249,47 +437,41 @@
   function openModal(id) { document.getElementById(id).style.display = 'flex'; }
   function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-  // 1. 口座開設申請（QRコード自動生成 & メール案内メッセージ付き）
   function submitRegisterRequest() {
     const name = document.getElementById('reg-name').value.trim();
     const email = document.getElementById('reg-email').value.trim();
-    if (!name || !email) return alert('名義とメールアドレスを入力してください。');
+    const pass = document.getElementById('reg-pass').value.trim() || "123456";
 
-    alert("申請を送信しています。処理完了の画面が表示されるまでそのままお待ちください...");
+    if (!name || !email) return alert('名義とメールアドレスを入力してください。');
+    alert("口座開設を申請中...数秒お待ちください。");
 
     fetch(GAS_ENDPOINT, {
       method: "POST",
-      body: JSON.stringify({ action: "createAccount", romanName: name, email: email })
+      body: JSON.stringify({ action: "createAccount", romanName: name, email: email, password: pass })
     })
     .then(res => res.json())
     .then(res => {
       if (res.success) {
         alert(
-          `🎉 口座開設が完了いたしました！\n\n` +
+          `🎉 CoreBank 口座開設が完了しました！\n` +
           `■ 口座番号: ${res.accountNumber}\n` +
-          `■ 登録メールアドレス: ${email}\n\n` +
-          `【重要】ご登録メールアドレス宛に「認証用QRコード」および「登録完了通知」を自動送信いたしました。\n` +
-          `今すぐメールをご確認ください。\n\n` +
-          `※ご自身の操作ではない場合は、お手数ですがメール記載の案内またはお問い合わせフォームよりご連絡をお願いいたします。`
+          `■ パスワード: ${res.password}\n\n` +
+          `登録メールアドレス宛に「認証QRコード」付きの案内メールを自動送信いたしました。`
         );
         currentUser = res;
         currentUser.romanName = name;
         currentUser.email = email;
         localStorage.setItem('corebank_user', JSON.stringify(currentUser));
         showMypage();
-      } else {
-        alert(res.message || "エラーが発生しました。");
-      }
+      } else { alert(res.message); }
     })
-    .catch(() => alert("通信エラーが発生しました。"));
+    .catch(() => alert("通信エラーが発生しました。GAS側の権限・デプロイ設定をご確認ください。"));
   }
 
-  // 2. ログイン
   function submitLogin() {
     const name = document.getElementById('login-name').value.trim();
     const email = document.getElementById('login-email').value.trim();
     const pass = document.getElementById('login-pass').value.trim();
-    if (!name || !email || !pass) return alert('全ての項目を入力してください。');
 
     fetch(GAS_ENDPOINT, {
       method: "POST",
@@ -298,21 +480,67 @@
     .then(res => res.json())
     .then(res => {
       if (res.success) {
-        alert("ログインが完了しました。\nご登録メールアドレス宛にログイン通知メールを配信いたしました。");
+        alert("ログイン認証に成功しました。確認メールを送信いたしました。");
         currentUser = res;
         localStorage.setItem('corebank_user', JSON.stringify(currentUser));
         showMypage();
-      } else {
-        alert(res.message);
-      }
+      } else { alert(res.message); }
     });
   }
 
-  // 3. 送金実行
+  function searchUsersForTransfer() {
+    const q = document.getElementById('search-user-input').value.trim();
+    const listDiv = document.getElementById('search-results-list');
+    if (!q) { listDiv.classList.add('hidden'); return; }
+
+    fetch(`${GAS_ENDPOINT}?action=searchUser&name=${encodeURIComponent(q)}&myAccount=${currentUser ? currentUser.accountNumber : ''}`)
+      .then(res => res.json())
+      .then(data => {
+        listDiv.innerHTML = '';
+        if (data && data.length > 0) {
+          listDiv.classList.remove('hidden');
+          data.forEach(u => {
+            const item = document.createElement('div');
+            item.className = 'user-item';
+            item.innerHTML = `<span><strong>${u.holderName}</strong></span> <span style="color:var(--accent-blue); font-family:monospace;">${u.accountNumber}</span>`;
+            item.onclick = function() {
+              document.getElementById('transfer-to').value = u.accountNumber;
+              listDiv.classList.add('hidden');
+            };
+            listDiv.appendChild(item);
+          });
+        } else {
+          listDiv.innerHTML = '<div style="padding:12px; color:var(--text-sub); font-size:0.85rem;">該当する口座が見つかりません</div>';
+          listDiv.classList.remove('hidden');
+        }
+      });
+  }
+
+  function executeGeneralUserSearch() {
+    const q = document.getElementById('general-search-input').value.trim();
+    const listDiv = document.getElementById('general-search-results');
+    if (!q) { listDiv.innerHTML = ''; return; }
+
+    fetch(`${GAS_ENDPOINT}?action=searchUser&name=${encodeURIComponent(q)}&myAccount=${currentUser ? currentUser.accountNumber : ''}`)
+      .then(res => res.json())
+      .then(data => {
+        listDiv.innerHTML = '';
+        if (data && data.length > 0) {
+          data.forEach(u => {
+            const item = document.createElement('div');
+            item.className = 'user-item';
+            item.innerHTML = `<span><strong>${u.holderName}</strong></span> <span style="color:var(--accent-blue); font-family:monospace;">${u.accountNumber}</span>`;
+            listDiv.appendChild(item);
+          });
+        } else {
+          listDiv.innerHTML = '<div style="padding:12px; color:var(--text-sub); font-size:0.85rem;">一致する口座なし</div>';
+        }
+      });
+  }
+
   function submitTransfer() {
     const toAcc = document.getElementById('transfer-to').value.trim();
     const amount = Number(document.getElementById('transfer-amount').value);
-    if (!toAcc || !amount || amount <= 0) return alert('正しい送金先と金額を入力してください。');
 
     fetch(GAS_ENDPOINT, {
       method: "POST",
@@ -326,107 +554,107 @@
     .then(res => res.json())
     .then(res => {
       if (res.success) {
-        alert(
-          `💸 送金が完了いたしました！\n` +
-          `送金額: ${amount.toLocaleString()}円\n\n` +
-          `【通知】送金完了通知メールをご登録メールアドレスへ自動送信いたしました。\n` +
-          `メールをご確認ください。ご自身の操作でない場合はお問い合わせをお願いいたします。`
-        );
+        alert(`送金完了！\n0.7%還元ポイント（+${res.interestAdded}円）が加算されました。\n確認メールを送信いたしました。`);
         currentUser.balance = res.newBalance;
         updateUI();
         closeModal('transfer-modal');
-      } else {
-        alert(res.message);
-      }
+      } else { alert(res.message); }
     });
   }
 
-  // 4. プリペイドコードチャージ
   function submitPrepaidCharge() {
     const code = document.getElementById('prepaid-code').value.trim();
-    if (!code) return alert('チャージコードを入力してください。');
-
     fetch(GAS_ENDPOINT, {
       method: "POST",
-      body: JSON.stringify({
-        action: "chargePrepaid",
-        accountNumber: currentUser.accountNumber,
-        prepaidCode: code
-      })
-    })
-    .then(res => res.json())
-    .then(res => {
+      body: JSON.stringify({ action: "chargePrepaid", accountNumber: currentUser.accountNumber, prepaidCode: code })
+    }).then(res => res.json()).then(res => {
       if (res.success) {
-        alert(
-          `💳 チャージが完了いたしました！\n` +
-          `チャージ額: ${res.chargedAmount.toLocaleString()}円\n` +
-          `最新残高: ${res.newBalance.toLocaleString()}円\n\n` +
-          `【通知】チャージ完了メールを送信いたしました。メールをご確認ください。`
-        );
+        alert(`チャージ完了！\n${res.chargedAmount.toLocaleString()}円 が残高に追加されました。`);
         currentUser.balance = res.newBalance;
         updateUI();
         closeModal('prepaid-modal');
-      } else {
-        alert(res.message);
-      }
+      } else { alert(res.message); }
     });
   }
 
-  // 5. ミライコアバライ (緊急チャージ)
   function submitMiraiCharge() {
     const amount = Number(document.getElementById('mirai-amount').value);
-    if (!amount || amount <= 0 || amount > 100) return alert('1円〜100円の範囲で指定してください。');
-
     fetch(GAS_ENDPOINT, {
       method: "POST",
-      body: JSON.stringify({
-        action: "miraiCharge",
-        accountNumber: currentUser.accountNumber,
-        amount: amount
-      })
-    })
-    .then(res => res.json())
-    .then(res => {
+      body: JSON.stringify({ action: "miraiCharge", accountNumber: currentUser.accountNumber, amount: amount })
+    }).then(res => res.json()).then(res => {
       if (res.success) {
-        alert(
-          `⚡ ミライコアバライの即時チャージが完了いたしました！\n` +
-          `利用金額: ${amount}円\n\n` +
-          `【通知】ご利用確認メールを自動送信いたしました。メールをご確認ください。`
-        );
+        alert(`ミライコアバライ実行完了！\n${res.chargedAmount}円 をチャージしました。通知メールをご確認ください。`);
         currentUser.balance = res.newBalance;
         updateUI();
         closeModal('mirai-modal');
-      } else {
-        alert(res.message);
-      }
+      } else { alert(res.message); }
     });
   }
 
-  // 6. お問い合わせ送信
-  function submitContact() {
-    const category = document.getElementById('contact-category').value;
-    const name = document.getElementById('contact-name').value.trim();
-    const email = document.getElementById('contact-email').value.trim();
-    const body = document.getElementById('contact-body').value.trim();
-    if (!name || !email || !body) return alert('全ての項目を入力してください。');
+  function submitMoneyX() {
+    const val = Number(document.getElementById('moneyx-amount').value);
+    fetch(GAS_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify({ action: "tradeMoneyX", accountNumber: currentUser.accountNumber, amountChange: val })
+    }).then(res => res.json()).then(res => {
+      if (res.success) {
+        alert(`マネーXトレード決済完了！\n最新残高: ¥${res.newBalance.toLocaleString()}`);
+        currentUser.balance = res.newBalance;
+        updateUI();
+        closeModal('moneyx-modal');
+      } else { alert(res.message); }
+    });
+  }
 
+  function searchCompany() {
+    const code = document.getElementById('corp-code').value.trim();
+    fetch(`${GAS_ENDPOINT}?action=getCompanyInfo&corpCode=${code}`)
+      .then(res => res.json())
+      .then(res => {
+        if (res.success) {
+          currentCorpData = res;
+          document.getElementById('corp-name-text').innerText = `請求元: ${res.corpName} (${res.payerName} 様宛)`;
+          document.getElementById('corp-amount-text').innerText = `請求額: ¥${res.amount.toLocaleString()} (状態: ${res.status})`;
+          document.getElementById('corp-info-area').classList.remove('hidden');
+        } else { alert(res.message); }
+      });
+  }
+
+  function submitCompanyPay() {
+    if (!currentCorpData) return;
     fetch(GAS_ENDPOINT, {
       method: "POST",
       body: JSON.stringify({
-        action: "sendContact",
-        category: category,
-        name: name,
-        email: email,
-        body: body
+        action: "confirmCompanyPay",
+        accountNumber: currentUser.accountNumber,
+        corpCode: currentCorpData.corpCode,
+        amount: currentCorpData.amount,
+        rowIndex: currentCorpData.rowIndex
       })
-    })
-    .then(res => res.json())
-    .then(() => {
-      alert(
-        `✉️ お問い合わせを受け付けいたしました。\n\n` +
-        `ご入力いただいたメールアドレス（${email}）宛にお受付確認メールを送信いたしました。\n` +
-        `メールをご確認の上、担当者からの返信をお待ちください。`
-      );
+    }).then(res => res.json()).then(res => {
+      if (res.success) {
+        alert("企業へのお支払いが正常に完了いたしました。確認メールを送信いたしました。");
+        currentUser.balance = res.newBalance;
+        updateUI();
+        closeModal('company-modal');
+      } else { alert(res.message); }
+    });
+  }
+
+  function submitContact() {
+    const cat = document.getElementById('contact-category').value;
+    const name = document.getElementById('contact-name').value.trim();
+    const email = document.getElementById('contact-email').value.trim();
+    const body = document.getElementById('contact-body').value.trim();
+
+    if (!name || !email || !body) return alert("すべての項目を入力してください。");
+
+    fetch(GAS_ENDPOINT, {
+      method: "POST",
+      body: JSON.stringify({ action: "sendContact", category: cat, name: name, email: email, body: body })
+    }).then(res => res.json()).then(() => {
+      alert("お問い合わせを受付いたしました。受取確認メールをご確認ください。");
       closeModal('contact-modal');
     });
   }
@@ -438,6 +666,7 @@
       .then(res => {
         if (res.success) {
           currentUser.balance = res.balance;
+          currentUser.status = res.status;
           updateUI();
         }
       });
@@ -452,9 +681,10 @@
 
   function updateUI() {
     if (!currentUser) return;
-    document.getElementById('user-name-display').innerText = `名義: ${currentUser.romanName}`;
-    document.getElementById('user-acc-display').innerText = `口座番号: ${currentUser.accountNumber}`;
+    document.getElementById('user-name-display').innerText = currentUser.romanName;
+    document.getElementById('user-acc-display').innerText = currentUser.accountNumber;
     document.getElementById('user-balance-display').innerText = `¥${(currentUser.balance || 0).toLocaleString()}`;
+    document.getElementById('user-status-display').innerText = currentUser.status || "ACTIVE";
   }
 
   function logout() {
